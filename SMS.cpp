@@ -28,14 +28,17 @@ void cleanScreen(void);
 void sleepClean(void);
 void accountRead(void);
 
-typedef struct AccountNode{
+struct AccountNode{
     string ID;
     string passWord;
-}AccountNode;
-typedef struct StudentsNode{//学生链表节点定义
+    AccountNode* next;
+    AccountNode(string A, string B) : ID(A), passWord(B), next(NULL) {}
+    AccountNode() : ID(""), passWord(""), next(NULL) {}
+};
+struct StudentsNode{//学生链表节点定义
     StudentsNode* next;
     StudentsNode() : next(NULL) {}
-}StudentsNode;
+};
 
 ////////////
 //链表全局头节点
@@ -46,14 +49,39 @@ AccountNode *AccountHead = NULL;//账号链表头节点
 void accountRead(void) {
     FILE *accountReadPtr = fopen("AccountSave.bin", "rb");
     if (accountReadPtr == NULL) {
-        cout << "打开文件失败";
+        cout << "打开文件失败" << endl;
         exit(1);
     }
     int multiple = -2;
     fread(&multiple, sizeof(int), 1, accountReadPtr);
-    
+    if (EOF != multiple) {
+        while (multiple--) {
+            int accountIDSize;
+            size_t check = fread(&accountIDSize, sizeof(int), 1, accountReadPtr);
+            string tempAccountID = "";//账号读出
+            for (int i = 0; i < accountIDSize; i++) {
+                char tempToRead;
+                fread(&tempToRead, sizeof(char), 1, accountReadPtr);
+                    tempAccountID += tempToRead;
+            }
 
-    system("pause");
+            string tempAccountPassWord = "";//密码读出
+            int accountPassWordSize;
+            fread(&accountPassWordSize, sizeof(int), 1, accountReadPtr);
+            for (int i = 0; i < accountPassWordSize; i++) {
+                char tempToRead;
+                fread(&tempToRead, sizeof(char), 1, accountReadPtr);
+                    tempAccountPassWord += tempToRead;
+            }
+
+            AccountNode* storageAccount = new AccountNode(tempAccountID, tempAccountPassWord);
+            AccountNode* temp = AccountHead;
+            while (NULL != temp->next) {
+                temp = temp->next;
+            }
+            temp->next = storageAccount;
+        }
+    }
     fclose(accountReadPtr);
 }
 
