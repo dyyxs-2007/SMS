@@ -16,6 +16,7 @@
 #include<ctime>
 #include<algorithm>
 #include<ranges>
+#define INPUT_MAX_SIZE 20
 using namespace std;
 
 string cinLineString(void);
@@ -25,30 +26,60 @@ void registerAccount(void);
 void studentLogin(void);
 void cleanScreen(void);
 void sleepClean(void);
+void accountRead(void);
 
-void sleepClean(void){
+typedef struct AccountNode{
+    string ID;
+    string passWord;
+}AccountNode;
+typedef struct StudentsNode{//学生链表节点定义
+    StudentsNode* next;
+    StudentsNode() : next(NULL) {}
+}StudentsNode;
+
+////////////
+//链表全局头节点
+StudentsNode *studentHead = NULL;//学生头节点
+AccountNode *AccountHead = NULL;//账号链表头节点
+////////////账号链表读取
+
+void accountRead(void) {
+    FILE *accountReadPtr = fopen("AccountSave.bin", "rb");
+    if (accountReadPtr == NULL) {
+        cout << "打开文件失败";
+        exit(1);
+    }
+    int multiple = -2;
+    fread(&multiple, sizeof(int), 1, accountReadPtr);
+    
+
+    system("pause");
+    fclose(accountReadPtr);
+}
+
+void sleepClean(void){//延迟清屏函数
     Sleep(700);
     system("cls");
 }
-string cinLineString(void){
+string cinLineString(void){//读入整行函数
     string lineAnswer = "";
     getline(cin, lineAnswer);
     return lineAnswer;
 }
 
-void cleanScreen(void){
+void cleanScreen(void){//清屏函数
     system("cls");
 }
 
-void registerAccount(void){
+void registerAccount(void){//1
     
 }
 
-void studentLogin(void){
+void studentLogin(void){//2
 
 }
 
-void printOriginChoice(void){
+void printOriginChoice(void){//初始界面
     printf("       学生管理系统\n");
     printf("-----------****-----------\n");
     printf("1.注册账号     2.学生登陆\n");
@@ -72,7 +103,7 @@ void printOriginChoice(void){
     } else if ("6" == firstChoice) {
 
     } else if ("7" == firstChoice) {
-        
+
         cout << "感谢使用学生管理系统" << endl;
         exit(0);
     } else {
@@ -80,13 +111,20 @@ void printOriginChoice(void){
         sleepClean();
     }
 }
-void originLogin(void){
+void originLogin(void){//初始登入界面
+    accountRead();
     while (1) {
         printOriginChoice();
     }
 }
 
 int main(){
-    originLogin();
+    /*
+    FILE *test = fopen("AccountSave.bin", "wb");
+    int a = 0;
+    fwrite(&a, sizeof(int), 1, test);
+    fclose(test);*/
+
+    originLogin();//初始登入
     return 0;
 }
