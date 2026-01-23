@@ -26,7 +26,8 @@ void registerAccount(void);
 void studentLogin(void);
 void cleanScreen(void);
 void sleepClean(void);
-void accountRead(void);
+void allAccountRead(void);
+void accountRead(int flag, char* path);
 
 struct AccountNode{
     string ID;
@@ -42,14 +43,24 @@ struct StudentsNode{//学生链表节点定义
 
 ////////////
 //链表全局头节点
-StudentsNode *studentHead = NULL;//学生头节点
-AccountNode *AccountHead = NULL;//账号链表头节点
+StudentsNode* studentHead = new StudentsNode();//学生头节点
+AccountNode* studentAccountHead = new AccountNode();//学生账号链表头节点
+AccountNode* teacherAccountHead = new AccountNode();//教师账号链表头节点
 ////////////账号链表读取
-
-void accountRead(void) {
-    FILE *accountReadPtr = fopen("AccountSave.bin", "rb");
+void allAccountRead(void) {
+    accountRead(1, "StudentStorage.bin");
+    accountRead(0, "TeacherStorage.bin");
+}
+void accountRead(int flag, char* path) {
+    AccountNode* head;
+    if (flag == 1) {
+        head = studentAccountHead;
+    } else {
+        head = teacherAccountHead;
+    }
+    FILE *accountReadPtr = fopen(path, "rb");
     if (accountReadPtr == NULL) {
-        cout << "打开文件失败" << endl;
+        cout << "文件读取失败" << endl;
         exit(1);
     }
     int multiple = -2;
@@ -57,7 +68,7 @@ void accountRead(void) {
     if (EOF != multiple) {
         while (multiple--) {
             int accountIDSize;
-            size_t check = fread(&accountIDSize, sizeof(int), 1, accountReadPtr);
+            fread(&accountIDSize, sizeof(int), 1, accountReadPtr);
             string tempAccountID = "";//账号读出
             for (int i = 0; i < accountIDSize; i++) {
                 char tempToRead;
@@ -75,7 +86,7 @@ void accountRead(void) {
             }
 
             AccountNode* storageAccount = new AccountNode(tempAccountID, tempAccountPassWord);
-            AccountNode* temp = AccountHead;
+            AccountNode* temp = head;
             while (NULL != temp->next) {
                 temp = temp->next;
             }
@@ -90,7 +101,7 @@ void sleepClean(void){//延迟清屏函数
     system("cls");
 }
 string cinLineString(void){//读入整行函数
-    string lineAnswer = "";
+    string lineAnswer;
     getline(cin, lineAnswer);
     return lineAnswer;
 }
@@ -98,9 +109,71 @@ string cinLineString(void){//读入整行函数
 void cleanScreen(void){//清屏函数
     system("cls");
 }
-
+void addAccountNode(int flag, string ID, string passWord) {
+    AccountNode* head = NULL;
+    if (1 == flag) {
+        head = studentAccountHead;
+    } else {
+        head = teacherAccountHead;
+    }
+    AccountNode* temp = new AccountNode(ID, passWord);
+    while (head->next != NULL) {
+        head = head->next;
+    }
+    head->next = temp;
+}
+bool existAccountNode(int flag, string ID) {
+    AccountNode* head = NULL;
+    if (1 == flag) {
+        head = studentAccountHead->next;
+    } else {
+        head = teacherAccountHead->next;
+    }
+    while (head != NULL) {
+        if (head->ID == ID) {
+            return true;
+        }
+        head = head->next;
+    }
+    return false;
+}
 void registerAccount(void){//1
-    
+    while (1) {
+        cleanScreen();
+        printf("请输入注册账号的类型：\n");
+        printf("1. 学生账号\n2. 教师账号\n");
+        string answer = cinLineString();
+        if (answer != "1" && answer != "2") {
+            cout << "请输入正确的序号！" << endl;
+            sleepClean();
+            continue;
+        }
+        cleanScreen();
+        printf("请输入您的账号\n");
+        string ID = cinLineString();
+        printf("请输入您的密码\n");
+        string passWord = cinLineString();
+        if (answer == "1") {
+            if (existAccountNode(1, ID)) {
+                cout << "抱歉，您输入的账户已被注册" << endl;
+                sleepClean();
+                continue;
+            }
+            addAccountNode(1, ID, passWord);
+            cout << "注册成功！" << endl;
+            break;
+        } else {
+            if (existAccountNode(2, ID)) {
+                cout << "抱歉，您输入的账户已被注册" << endl;
+                sleepClean();
+                continue;
+            }
+            addAccountNode(2, ID, passWord);
+            cout << "注册成功！" << endl;
+            break;
+        }
+    }
+    sleepClean();
 }
 
 void studentLogin(void){//2
@@ -140,7 +213,7 @@ void printOriginChoice(void){//初始界面
     }
 }
 void originLogin(void){//初始登入界面
-    accountRead();
+    allAccountRead();
     while (1) {
         printOriginChoice();
     }
@@ -148,11 +221,11 @@ void originLogin(void){//初始登入界面
 
 int main(){
     /*
-    FILE *test = fopen("AccountSave.bin", "wb");
+    FILE *test = fopen("TeacherStorage.bin", "wb");
     int a = 0;
     fwrite(&a, sizeof(int), 1, test);
-    fclose(test);*/
-
+    fclose(test);
+    */
     originLogin();//初始登入
     return 0;
 }
