@@ -28,6 +28,9 @@ void cleanScreen(void);
 void sleepClean(void);
 void allAccountRead(void);
 void accountRead(int flag, char* path);
+void teacherLogin(void);
+void studentOption(void);
+bool existPassWordNode(int flag, string passWord);
 
 struct AccountNode{
     string ID;
@@ -96,17 +99,17 @@ void accountRead(int flag, char* path) {
     fclose(accountReadPtr);
 }
 
-void sleepClean(void){//延迟清屏函数
+void sleepClean(void) {//延迟清屏函数
     Sleep(700);
     system("cls");
 }
-string cinLineString(void){//读入整行函数
+string cinLineString(void) {//读入整行函数
     string lineAnswer;
     getline(cin, lineAnswer);
     return lineAnswer;
 }
 
-void cleanScreen(void){//清屏函数
+void cleanScreen(void) {//清屏函数
     system("cls");
 }
 void addAccountNode(int flag, string ID, string passWord) {
@@ -137,7 +140,22 @@ bool existAccountNode(int flag, string ID) {
     }
     return false;
 }
-void registerAccount(void){//1
+bool existPassWordNode(int flag, string passWord) {
+    AccountNode* head = NULL;
+    if (1 == flag) {
+        head = studentAccountHead->next;
+    } else {
+        head = teacherAccountHead->next;
+    }
+    while (head != NULL) {
+        if (head->passWord == passWord) {
+            return true;
+        }
+        head = head->next;
+    }
+    return false;
+}
+void registerAccount(void) {//1
     while (1) {
         cleanScreen();
         printf("请输入注册账号的类型：\n");
@@ -176,17 +194,61 @@ void registerAccount(void){//1
     sleepClean();
 }
 
-void studentLogin(void){//2
+void studentOption(void) {
+    cout << "开发中" << endl;
+    sleepClean();
+}
+void studentLogin(void) {//2
+    while (1) {
+        cleanScreen();
+        cout << "请输入您的账号：" << endl;
+        string ID = cinLineString();
+        cleanScreen();
+        if (!existAccountNode(1, ID)) {
+            cout << "抱歉，您的账号不存在，请输入序号进行操作:" << endl;
+            cout << endl;
+            printf("1. 返回主菜单      其他. 重新输入\n");
+            cout << endl;
+            cout << "（注：“其他”指的是除了“1”以外的其他输入）" << endl;
+            string answer = cinLineString();
+            cleanScreen();
+                if (answer == "1") {
+                    return;
+                } else {
+                    continue;
+                }
+        }
+        cout << "请输入您的密码：" << endl;
+        string passWord = cinLineString();
+        cleanScreen();
+        if (existPassWordNode(1, passWord)) {
+            break;
+        } else {
+            cout << "密码错误，请输入序号进行操作：" << endl;
+            cout << endl;
+            printf("1. 返回主菜单      其他. 重新输入账号及密码\n");
+            cout << endl;
+            cout << "（注：“其他”指的是除了“1”以外的其他输入）" << endl;
+            string answer = cinLineString();
+            if (answer == "1") {
+                return;
+            } else {
+                continue;
+            }
+        }
+    }
+    studentOption();
+}
+void teacherLogin(void) {
 
 }
-
-void printOriginChoice(void){//初始界面
+void printOriginChoice(void) {//初始界面
     printf("       学生管理系统\n");
     printf("-----------****-----------\n");
     printf("1.注册账号     2.学生登陆\n");
     printf("3.教师登陆     4.管理员登陆\n");
     printf("5.账号修改     6.密码找回\n");
-    printf("7.退出系统\n");
+    printf("7.保存信息并退出系统\n");
     printf("-----------****-----------\n");
     cout << "请输入执行的操作" << endl;
     string firstChoice = cinLineString();
@@ -196,7 +258,7 @@ void printOriginChoice(void){//初始界面
     } else if ("2" == firstChoice) {
         studentLogin();
     } else if ("3" == firstChoice) {
-
+        teacherLogin();
     } else if ("4" == firstChoice) {
 
     } else if ("5" == firstChoice) {
@@ -212,14 +274,14 @@ void printOriginChoice(void){//初始界面
         sleepClean();
     }
 }
-void originLogin(void){//初始登入界面
+void originLogin(void) {//初始登入界面
     allAccountRead();
     while (1) {
         printOriginChoice();
     }
 }
 
-int main(){
+int main() {
     /*
     FILE *test = fopen("TeacherStorage.bin", "wb");
     int a = 0;
