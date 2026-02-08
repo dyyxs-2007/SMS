@@ -16,6 +16,7 @@
 #include<ctime>
 #include<algorithm>
 #include<ranges>
+#include<fstream>
 #define INPUT_MAX_SIZE 20
 using namespace std;
 
@@ -51,56 +52,11 @@ AccountNode* studentAccountHead = new AccountNode();//学生账号链表头节点
 AccountNode* teacherAccountHead = new AccountNode();//教师账号链表头节点
 ////////////账号链表读取
 void allAccountRead(void) {
-    accountRead(1, "StudentStorage.bin");
-    accountRead(0, "TeacherStorage.bin");
-}
-void accountRead(int flag, char* path) {
-    AccountNode* head;
-    if (flag == 1) {
-        head = studentAccountHead;
-    } else {
-        head = teacherAccountHead;
-    }
-    FILE *accountReadPtr = fopen(path, "rb");
-    if (accountReadPtr == NULL) {
-        cout << "文件读取失败" << endl;
-        exit(1);
-    }
-    int multiple = -2;
-    fread(&multiple, sizeof(int), 1, accountReadPtr);
-    if (EOF != multiple) {
-        while (multiple--) {
-            int accountIDSize;
-            fread(&accountIDSize, sizeof(int), 1, accountReadPtr);
-            string tempAccountID = "";//账号读出
-            for (int i = 0; i < accountIDSize; i++) {
-                char tempToRead;
-                fread(&tempToRead, sizeof(char), 1, accountReadPtr);
-                    tempAccountID += tempToRead;
-            }
-
-            string tempAccountPassWord = "";//密码读出
-            int accountPassWordSize;
-            fread(&accountPassWordSize, sizeof(int), 1, accountReadPtr);
-            for (int i = 0; i < accountPassWordSize; i++) {
-                char tempToRead;
-                fread(&tempToRead, sizeof(char), 1, accountReadPtr);
-                    tempAccountPassWord += tempToRead;
-            }
-
-            AccountNode* storageAccount = new AccountNode(tempAccountID, tempAccountPassWord);
-            AccountNode* temp = head;
-            while (NULL != temp->next) {
-                temp = temp->next;
-            }
-            temp->next = storageAccount;
-        }
-    }
-    fclose(accountReadPtr);
+    //...
 }
 
 void sleepClean(void) {//延迟清屏函数
-    Sleep(700);
+    Sleep(600);
     system("cls");
 }
 string cinLineString(void) {//读入整行函数
@@ -160,17 +116,26 @@ void registerAccount(void) {//1
         cleanScreen();
         printf("请输入注册账号的类型：\n");
         printf("1. 学生账号\n2. 教师账号\n");
+        printf("3. 返回菜单界面\n");
         string answer = cinLineString();
-        if (answer != "1" && answer != "2") {
+        if (answer != "1" && answer != "2" && answer != "3") {
             cout << "请输入正确的序号！" << endl;
             sleepClean();
             continue;
+        }
+        if (answer == "3") {
+            return;
         }
         cleanScreen();
         printf("请输入您的账号\n");
         string ID = cinLineString();
         printf("请输入您的密码\n");
         string passWord = cinLineString();
+        if (ID == "" || passWord == "") {
+            cout << "账号或密码不能为空，请重新输入" << endl;
+            sleepClean();
+            continue;
+        }
         if (answer == "1") {
             if (existAccountNode(1, ID)) {
                 cout << "抱歉，您输入的账户已被注册" << endl;
@@ -207,6 +172,7 @@ void studentLogin(void) {//2
         cout << "请输入您的账号：" << endl;
         string ID = cinLineString();
         cleanScreen();
+
         if (!existAccountNode(1, ID)) {
             cout << "抱歉，您的账号不存在，请输入序号进行操作:" << endl;
             cout << endl;
