@@ -4,11 +4,7 @@
 #include<conio.h>
 #include<vector>
 #include<map>
-#include<set>
-#include<unordered_map>
-#include<unordered_set>
 #include<queue>
-#include<deque>
 #include<cstdio>
 #include<cmath>
 #include<cstring>
@@ -33,23 +29,39 @@ void teacherLogin(void);
 void studentOption(void);
 bool existPassWordNode(int flag, string passWord);
 
-struct AccountNode{
+struct AccountNode{//账号密码节点定义
     string ID;
     string passWord;
     AccountNode* next;
     AccountNode(string A, string B) : ID(A), passWord(B), next(NULL) {}
     AccountNode() : ID(""), passWord(""), next(NULL) {}
 };
-struct StudentsNode{//学生链表节点定义
+struct StudentsNode{//学生信息节点定义
     StudentsNode* next;
+    string name;
+    string che;
+    string mat;
+    string eng;
+    string number;
+    string clss;
     StudentsNode() : next(NULL) {}
+};
+
+struct TeachersNode{
+    TeachersNode* next;
+    string name;
+    string number;
+    string clss;
+    TeachersNode() : next(NULL) {}
 };
 
 ////////////
 //链表全局头节点
-StudentsNode* studentHead = new StudentsNode();//学生头节点
+StudentsNode* studentHead = new StudentsNode();//学生细节信息头节点
+TeachersNode* teacherHead = new TeachersNode();//教师细节信息头节点
 AccountNode* studentAccountHead = new AccountNode();//学生账号链表头节点
 AccountNode* teacherAccountHead = new AccountNode();//教师账号链表头节点
+AccountNode* AdminAccountHead = new AccountNode();//管理员账号链表头节点
 ////////////账号链表读取
 void allAccountRead(void) {
     //...
@@ -164,7 +176,76 @@ void studentOption(void) {
     sleepClean();
 }
 void teacherOption(void) {
-    
+    printf("请输入选项序号以进行操作：\n");
+    printf("1. 学生信息增删改查     2. 查看班内成绩\n");
+    printf("3. 学生信息下载         4. 成绩分析\n");
+    printf("5. 返回上一层\n");
+}
+void studentConfirm(void) {
+    while (1) {
+        printf("请输入您的学号:\n");
+        string number = cinLineString();
+        cleanScreen();
+        bool flag = 0;
+        StudentsNode* tempseek = studentHead->next;
+        while (tempseek != NULL) {
+            if (tempseek->number == number) {
+                flag = 1;
+                break;
+            }
+            tempseek = tempseek->next;
+        }
+        if (flag == 1) {
+            studentOption();
+            break;
+        } else {
+            printf("抱歉，您的学号未查询到，重新输入或退出？");
+            cout << endl;
+            printf("1. 返回主菜单      其他. 重新输入\n");
+            cout << endl;
+            cout << "（注：“其他”指的是除了“1”以外的其他输入）" << endl;
+            string answer = cinLineString();
+            cleanScreen();
+            if (answer == "1") {
+                return;
+            } else {
+                continue;
+            }
+        }
+    }
+}
+void teacherConfirm(void) {
+    while (1) {
+        printf("请输入您的教师工号:\n");
+        string number = cinLineString();
+        cleanScreen();
+        bool flag = 0;
+        TeachersNode* tempseek = teacherHead->next;
+        while (tempseek != NULL) {
+            if (tempseek->number == number) {
+                flag = 1;
+                break;
+            }
+            tempseek = tempseek->next;
+        }
+        if (flag == 1) {
+            teacherOption();
+            break;
+        } else {
+            printf("抱歉，您的工号未查询到，重新输入或退出？");
+            cout << endl;
+            printf("1. 返回主菜单      其他. 重新输入\n");
+            cout << endl;
+            cout << "（注：“其他”指的是除了“1”以外的其他输入）" << endl;
+            string answer = cinLineString();
+            cleanScreen();
+            if (answer == "1") {
+                return;
+            } else {
+                continue;
+            }
+        }
+    }
 }
 void studentLogin(void) {//2
     while (1) {
@@ -206,7 +287,8 @@ void studentLogin(void) {//2
             }
         }
     }
-    studentOption();
+    cleanScreen();
+    studentConfirm();
 }
 void teacherLogin(void) {
     while (1) {
@@ -247,7 +329,8 @@ void teacherLogin(void) {
             }
         }
     }
-    teacherOption();
+    cleanScreen();
+    teacherConfirm();
 }
 void printOriginChoice(void) {//初始界面
     printf("       学生管理系统\n");
@@ -289,7 +372,18 @@ void originLogin(void) {//初始登入界面
     }
 }
 
-int main() {
+int main() {/*
+    string filename = "C:\\Users\\dyyxs\\Desktop\\SMS\\date\\StudentIP.bin";
+    ofstream fls(filename, ios::trunc | ios::binary);
+    int te1 = 0;
+    fls.write((char *)&te1, sizeof(int));
+    fls.close();
+    ifstream fls1(filename, ios::binary);
+    int out;
+    fls1.read((char *)&out, sizeof(int));
+    cout << out << endl;
+    fls1.close();
+    */
     originLogin();//初始登入
     return 0;
 }
