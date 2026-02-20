@@ -13,6 +13,7 @@
 #include<algorithm>
 #include<ranges>
 #include<fstream>
+#define MAX_SCORE 150
 using namespace std;
 
 string cinLineString(void);
@@ -145,7 +146,6 @@ void studentNodeRead(void) {//学生细节信息节点读取
         exit(1);
     }
     int multiple;
-    StudentsNode* head = studentHead;
     StudentsNode* last = NULL;//防止访问到哨兵节点
     ifs.read((char*)&multiple, sizeof(int));
     if (multiple > 0) {
@@ -186,6 +186,33 @@ void allRead(void) {
     accountRead(2);
 }
 
+bool judge(void) {
+    cout << "确认您做出的操作吗？" << endl;
+    cout << "1. 确认   其他. 取消" << endl;
+    string answer = cinLineString();
+    if (answer == "1") {
+        return true;
+    } else {
+        return false;
+    }
+}
+bool scoreVerify(string score) {
+    for (int i = 0; i < score.size(); i++) {
+        if (score[i] > '9' || score[i] < '0') {
+            return false;
+        }
+    }
+    int num = 0;
+    for (int i = 0; i < score.size(); i++) {
+        num = num * 10 + (score[i] - '0');
+    }
+    if (num > MAX_SCORE || num < 0) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 void sleepClean(void) {//延迟清屏函数
     Sleep(600);
     system("cls");
@@ -212,7 +239,7 @@ void addAccountNode(int flag, string ID, string passWord) {
     }
     head->next = temp;
 }
-bool existAccountNode(int flag, string ID) {
+bool existAccountNode(int flag, string ID) {//1学生2老师
     AccountNode* head = NULL;
     if (1 == flag) {
         head = studentAccountHead->next;
@@ -239,6 +266,16 @@ bool existPassWordNode(int flag, string passWord) {
             return true;
         }
         head = head->next;
+    }
+    return false;
+}
+bool existStudentNode(string number) {
+    StudentsNode* temp = studentHead->next;
+    while (temp) {
+        if (temp->number == number) {
+            return true;
+        }
+        temp = temp->next;
     }
     return false;
 }
@@ -290,15 +327,136 @@ void registerAccount(void) {//1
     sleepClean();
 }
 
+void studentIPOption(void) {
+    while (1) {
+        cleanScreen();
+        printf("            请输入选项序号以进行操作：\n");
+        printf("---------------------------------------------------\n");
+        printf("1. 新增学生信息             2. 删除学生信息\n");
+        printf("3. 修改学生信息             4. 查找学生信息\n");
+        printf("5. 返回上一层\n");
+        printf("---------------------------------------------------\n");
+        string answer = cinLineString();
+        cleanScreen();
+        if (answer == "1") {
+            cout << "请输入该学生姓名" << endl;
+            string name = cinLineString();
+            cout << "请输入该学生分数" << endl;
+            string score = cinLineString();
+            if (!scoreVerify(score)) {
+                cleanScreen();
+                cout << "抱歉，您输入的分数并不合法，请输入0~150区间内的数字" << endl;
+                system("pause");
+                continue;
+            }
+            cout << "请输入该学生学号" << endl;
+            string number = cinLineString();
+            if (existStudentNode(number)) {
+                cleanScreen();
+                cout << "抱歉，该学号已存在" <<endl;
+                system("pause");
+                cleanScreen();
+            }
+            cout << "请输入该学生所在班级" << endl;
+            string clss = cinLineString();
+            if (!judge()) {
+                cleanScreen();
+                cout << "好的，您的请求已取消" << endl;
+                sleepClean();
+                continue;
+            }
+            StudentsNode* temp = new StudentsNode(name, score, number, clss);
+            StudentsNode* seek = studentHead;
+            if (NULL == studentHead->next) {
+                studentHead->next = temp;
+            } else {
+                while (NULL != seek->next) {
+                    seek->next = temp;
+                    temp->prev = seek;
+                }
+            }
+            cout << "添加成功" << endl;
+            sleepClean();
+        } else if (answer == "2") {
+
+        } else if (answer == "3") {
+            
+        } else if (answer == "4") {
+            
+        } else if (answer == "5") {
+            return;
+        } else {
+            cout << "请输入正确的操作序号！" << endl;
+            sleepClean();
+        }
+        cleanScreen();
+    }
+}
+
 void studentOption(void) {
     cout << "开发中" << endl;
     sleepClean();
 }
 void teacherOption(void) {
-    printf("请输入选项序号以进行操作：\n");
-    printf("1. 学生信息增删改查     2. 查看班内成绩\n");
-    printf("3. 学生信息下载         4. 成绩分析\n");
-    printf("5. 返回上一层\n");
+    while (1) {
+        cleanScreen();
+        printf("            请输入选项序号以进行操作：\n");
+        printf("---------------------------------------------------\n");
+        printf("1. 学生信息增删改查     2. 查看班内成绩\n");
+        printf("3. 学生信息下载         4. 成绩分析\n");
+        printf("5. 返回上一层\n");
+        printf("---------------------------------------------------\n");
+        string answer = cinLineString();
+        if (answer == "1") {
+            studentIPOption();
+        } else if (answer == "2") {
+            
+        } else if (answer == "3") {
+        
+        } else if (answer == "4") {
+            
+        } else if (answer == "5") {
+            break;
+        } else {
+            cout << "请输入正确的操作序号！" << endl;
+            sleepClean();
+        }
+        cleanScreen();
+    }
+}
+void adminOption(void) {
+    while (1) {
+        cleanScreen();
+        printf("            请输入选项序号以进行操作：\n");
+        printf("---------------------------------------------------\n");
+        printf("1. 账号密码增删改查           2. 增删改查学生信息\n");
+        printf("3. 增删改查教师信息           4. 从文件录入所有账号密码\n");
+        printf("5. 从文件导出所有账号密码     6. 登陆至教师操作页面\n");
+        printf("7. 查看代办                  8. 返回上一层\n");
+        printf("---------------------------------------------------\n");
+        string answer = cinLineString();
+        if (answer == "1") {
+
+        } else if (answer == "2") {
+            studentIPOption();
+        } else if (answer == "3") {
+            
+        } else if (answer == "4") {
+            
+        } else if (answer == "5") {
+            
+        } else if (answer == "6") {
+            teacherOption();
+        } else if (answer == "7") {
+            
+        } else if (answer == "8") {
+            break;
+        } else {
+        cout << "请输入正确的操作序号！" << endl;
+        sleepClean();
+        }
+        cleanScreen();
+    }
 }
 void studentConfirm(void) {
     while (1) {
@@ -451,10 +609,7 @@ void teacherLogin(void) {
     cleanScreen();
     teacherConfirm();
 }
-void adminOption(void) {
-    cout << "成功登录，开发中" << endl;
-    system("pause");
-}
+
 void adminLogin(void) {
     while (1) {
         printf("请输入您的管理员账号\n");
@@ -531,7 +686,7 @@ void originLogin(void) {//初始登入界面
 }
 
 int main() {
-    
+    /*
     string filename = "C:\\Users\\dyyxs\\Desktop\\SMS\\date\\AdminDate.bin";
     ofstream fls(filename, ios::trunc | ios::binary);
     int te1 = 1;
@@ -546,7 +701,7 @@ int main() {
     fls.write((char*)&length, sizeof(int));
     fls.write((char*)&passWord[0], passWord.size());
     fls.close();
-    
+    */
     /*
     ifstream fls1(filename, ios::binary);
     int out;
