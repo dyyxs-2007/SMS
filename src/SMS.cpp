@@ -326,7 +326,47 @@ void registerAccount(void) {//1
     }
     sleepClean();
 }
-
+int newStudent(void) {
+    cout << "请输入该学生姓名" << endl;
+    string name = cinLineString();
+    cout << "请输入该学生分数" << endl;
+    string score = cinLineString();
+    if (!scoreVerify(score)) {
+        cleanScreen();
+        cout << "抱歉，您输入的分数并不合法，请输入0~150区间内的数字" << endl;
+        system("pause");
+        return 1;
+    }
+    cout << "请输入该学生学号" << endl;
+    string number = cinLineString();
+    if (existStudentNode(number)) {
+        cleanScreen();
+        cout << "抱歉，该学号已存在" <<endl;
+        system("pause");
+        cleanScreen();
+    }
+    cout << "请输入该学生所在班级" << endl;
+    string clss = cinLineString();
+    if (!judge()) {
+        cleanScreen();
+        cout << "好的，您的请求已取消" << endl;
+        sleepClean();
+        return 1;
+    }
+    StudentsNode* temp = new StudentsNode(name, score, number, clss);
+    StudentsNode* seek = studentHead;
+    if (NULL == studentHead->next) {
+        studentHead->next = temp;
+    } else {
+        while (NULL != seek->next) {
+            seek->next = temp;
+            temp->prev = seek;
+        }
+    }
+    cout << "添加成功" << endl;
+    sleepClean();
+    return 0;
+}
 void studentIPOption(void) {
     while (1) {
         cleanScreen();
@@ -339,44 +379,9 @@ void studentIPOption(void) {
         string answer = cinLineString();
         cleanScreen();
         if (answer == "1") {
-            cout << "请输入该学生姓名" << endl;
-            string name = cinLineString();
-            cout << "请输入该学生分数" << endl;
-            string score = cinLineString();
-            if (!scoreVerify(score)) {
-                cleanScreen();
-                cout << "抱歉，您输入的分数并不合法，请输入0~150区间内的数字" << endl;
-                system("pause");
+            if (newStudent()) {
                 continue;
             }
-            cout << "请输入该学生学号" << endl;
-            string number = cinLineString();
-            if (existStudentNode(number)) {
-                cleanScreen();
-                cout << "抱歉，该学号已存在" <<endl;
-                system("pause");
-                cleanScreen();
-            }
-            cout << "请输入该学生所在班级" << endl;
-            string clss = cinLineString();
-            if (!judge()) {
-                cleanScreen();
-                cout << "好的，您的请求已取消" << endl;
-                sleepClean();
-                continue;
-            }
-            StudentsNode* temp = new StudentsNode(name, score, number, clss);
-            StudentsNode* seek = studentHead;
-            if (NULL == studentHead->next) {
-                studentHead->next = temp;
-            } else {
-                while (NULL != seek->next) {
-                    seek->next = temp;
-                    temp->prev = seek;
-                }
-            }
-            cout << "添加成功" << endl;
-            sleepClean();
         } else if (answer == "2") {
 
         } else if (answer == "3") {
@@ -609,7 +614,6 @@ void teacherLogin(void) {
     cleanScreen();
     teacherConfirm();
 }
-
 void adminLogin(void) {
     while (1) {
         printf("请输入您的管理员账号\n");
@@ -645,6 +649,122 @@ void adminLogin(void) {
         }
     }
 }
+void dateStorage(int x) {//0管理员1学生2老师
+    string path;
+    AccountNode* head;
+    if (x == 0) {
+        path = "C:\\Users\\dyyxs\\Desktop\\SMS\\date\\AdminDate.bin";
+        head = AdminAccountHead;
+    } else if (x == 1) {
+        path = "C:\\Users\\dyyxs\\Desktop\\SMS\\date\\StudentDate.bin";
+        head = studentAccountHead;
+    } else {
+        path = "C:\\Users\\dyyxs\\Desktop\\SMS\\date\\TeacherDate.bin";
+        head = teacherAccountHead;
+    }
+    ofstream ofs(path, ios::trunc | ios::binary);
+    if (!ofs) {
+        cout << "打开文件失败" << endl;
+        exit(1);
+    }
+    int length = 0;
+    AccountNode* count = head->next;
+    while (count) {
+        length++;
+        count = count->next;
+    }
+    ofs.write((char*)&length, sizeof(int));
+    for (int i = 0; i < length; i++) {
+        head = head->next;
+        string ID = head->ID;
+        int size = ID.size();
+        ofs.write((char*)&size, sizeof(int));
+        ofs.write((char*)&ID[0], ID.size());
+        string passWord = head->passWord;
+        size = passWord.size();
+        ofs.write((char*)&size, sizeof(int));
+        ofs.write((char*)&passWord[0], passWord.size());
+    }
+
+    ofs.close();
+}
+void studentIPStorage(void) {
+    ofstream ofs("C:\\Users\\dyyxs\\Desktop\\SMS\\date\\StudentIP.bin", ios::trunc | ios::binary);
+    if (!ofs) {
+        cout << "存储失败" << endl;
+        exit(1);
+    }
+    StudentsNode* count = studentHead->next;
+    StudentsNode* current = studentHead;
+    int length = 0;
+    while (NULL != count) {
+        length++;
+        count = count->next;
+    }
+    ofs.write((char*)&length, sizeof(int));
+    for (int i = 0; i < length; i++) {
+        current = current->next;
+
+        string name = current->name;
+        int size = name.size();
+        ofs.write((char*)&size, sizeof(int));
+        ofs.write((char*)&name[0], size);
+        
+        string score = current->score;
+        size = score.size();
+        ofs.write((char*)&size, sizeof(int));
+        ofs.write((char*)&score[0], size);
+
+        string number = current->number;
+        size = number.size();
+        ofs.write((char*)&size, sizeof(int));
+        ofs.write((char*)&number[0], size);
+        
+        string clss = current->clss;
+        size = clss.size();
+        ofs.write((char*)&size, sizeof(int));
+        ofs.write((char*)&clss[0], size);
+    }
+    ofs.close();
+}
+void teacherIPStorage(void) {
+    ofstream ofs("C:\\Users\\dyyxs\\Desktop\\SMS\\date\\TeacherIP.bin", ios::trunc | ios::binary);
+    if (!ofs) {
+        cout << "存储失败" << endl;
+        exit(1);
+    }
+    TeachersNode* count = teacherHead->next;
+    TeachersNode* current = teacherHead;
+    int length = 0;
+    while (NULL != count) {
+        length++;
+        count = count->next;
+    }
+    ofs.write((char*)&length, sizeof(int));
+    for (int i = 0; i < length; i++) {
+        current = current->next;
+        string name = current->name;
+        int size = name.size();
+        ofs.write((char*)&size, sizeof(int));
+        ofs.write((char*)&name[0], size);
+        string number = current->number;
+        size = number.size();
+        ofs.write((char*)&size, sizeof(int));
+        ofs.write((char*)&number[0], size);
+        string clss = current->clss;
+        size = clss.size();
+        ofs.write((char*)&size, sizeof(int));
+        ofs.write((char*)&clss[0], size);
+    }
+    ofs.close();
+}
+void allStorage(void) {
+    dateStorage(0);
+    dateStorage(1);
+    dateStorage(2);
+    teacherIPStorage();
+    studentIPStorage();
+}
 void printOriginChoice(void) {//初始界面
     printf("       学生管理系统\n");
     printf("-----------****-----------\n");
@@ -669,7 +789,7 @@ void printOriginChoice(void) {//初始界面
     } else if ("6" == firstChoice) {
 
     } else if ("7" == firstChoice) {
-
+        allStorage();
         cout << "感谢使用学生管理系统" << endl;
         exit(0);
     } else {
