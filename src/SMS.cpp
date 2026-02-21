@@ -326,46 +326,24 @@ void registerAccount(void) {//1
     }
     sleepClean();
 }
-int newStudent(void) {
-    cout << "请输入该学生姓名" << endl;
-    string name = cinLineString();
-    cout << "请输入该学生分数" << endl;
-    string score = cinLineString();
-    if (!scoreVerify(score)) {
-        cleanScreen();
-        cout << "抱歉，您输入的分数并不合法，请输入0~150区间内的数字" << endl;
-        system("pause");
-        return 1;
+
+void showStudent(void) {
+    StudentsNode* current = studentHead->next;
+    if (NULL == current) {
+        cout << "暂时还没有学生信息，请增添" << endl;
     }
-    cout << "请输入该学生学号" << endl;
-    string number = cinLineString();
-    if (existStudentNode(number)) {
-        cleanScreen();
-        cout << "抱歉，该学号已存在" <<endl;
-        system("pause");
-        cleanScreen();
+    int count = 1;
+    while (NULL != current) {
+        printf("%d-------------------------------\n", count);
+        cout << "姓名：" << current->name << endl;
+        cout << "班级：" << current->clss << endl;
+        cout << "成绩：" << current->score << endl;
+        cout << "学号：" << current->number << endl;
+        cout << endl;
+        count++;
+        current = current->next;
     }
-    cout << "请输入该学生所在班级" << endl;
-    string clss = cinLineString();
-    if (!judge()) {
-        cleanScreen();
-        cout << "好的，您的请求已取消" << endl;
-        sleepClean();
-        return 1;
-    }
-    StudentsNode* temp = new StudentsNode(name, score, number, clss);
-    StudentsNode* seek = studentHead;
-    if (NULL == studentHead->next) {
-        studentHead->next = temp;
-    } else {
-        while (NULL != seek->next) {
-            seek->next = temp;
-            temp->prev = seek;
-        }
-    }
-    cout << "添加成功" << endl;
-    sleepClean();
-    return 0;
+    system("pause");
 }
 void studentIPOption(void) {
     while (1) {
@@ -374,14 +352,52 @@ void studentIPOption(void) {
         printf("---------------------------------------------------\n");
         printf("1. 新增学生信息             2. 删除学生信息\n");
         printf("3. 修改学生信息             4. 查找学生信息\n");
-        printf("5. 返回上一层\n");
+        printf("5. 学生信息展示             6. 返回上一层\n");
         printf("---------------------------------------------------\n");
         string answer = cinLineString();
         cleanScreen();
         if (answer == "1") {
-            if (newStudent()) {
+            cout << "请输入该学生姓名" << endl;
+            string name = cinLineString();
+            cout << "请输入该学生分数" << endl;
+            string score = cinLineString();
+            if (!scoreVerify(score)) {
+                cleanScreen();
+                cout << "抱歉，您输入的分数并不合法，请输入0~150区间内的数字" << endl;
+                system("pause");
                 continue;
             }
+            cout << "请输入该学生学号" << endl;
+            string number = cinLineString();
+            if (existStudentNode(number)) {
+                cleanScreen();
+                cout << "抱歉，该学号已存在" <<endl;
+                system("pause");
+                cleanScreen();
+                continue;
+            }
+            cout << "请输入该学生所在班级" << endl;
+            string clss = cinLineString();
+            if (!judge()) {
+                cleanScreen();
+                cout << "好的，您的请求已取消" << endl;
+                sleepClean();
+                continue;
+            }
+            StudentsNode* temp = new StudentsNode(name, score, number, clss);
+            StudentsNode* seek = studentHead;
+            if (NULL == studentHead->next) {
+                studentHead->next = temp;
+            } else {
+                while (NULL != seek->next) {
+                    seek = seek->next;
+                }
+                seek->next = temp;
+                temp->prev = seek;
+            }
+            cleanScreen();
+            cout << "添加成功" << endl;
+            sleepClean();
         } else if (answer == "2") {
 
         } else if (answer == "3") {
@@ -389,6 +405,8 @@ void studentIPOption(void) {
         } else if (answer == "4") {
             
         } else if (answer == "5") {
+            showStudent();
+        } else if (answer == "6") {
             return;
         } else {
             cout << "请输入正确的操作序号！" << endl;
