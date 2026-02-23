@@ -850,8 +850,87 @@ void adminOption(void) {
         } else {
             cout << "请输入正确的操作序号！" << endl;
             sleepClean();
+            continue;
         }
         cleanScreen();
+    }
+}
+void accountModify(void) {
+    while (1) {
+        cleanScreen();
+        cout << "请输入您要修改的账号类型:" << endl;
+        cout << "1. 学生        2. 老师" << endl;
+        cout << "3. 返回上一级" << endl;
+        string answer = cinLineString();
+        AccountNode* modifyTarget = NULL;
+        int flag = 0;
+        cleanScreen();
+        if ("1" == answer) {
+            modifyTarget = studentAccountHead;
+            flag = 1;
+        } else if ("2" == answer) {
+            modifyTarget = teacherAccountHead;
+            flag = 2;
+        } else if ("3" == answer) {
+            return;
+        } else {
+            cout << "请输入正确的操作序号！" << endl;
+            sleepClean();
+            continue;
+        }
+        cout << "请输入要修改的原账号" << endl;
+        string oriID = cinLineString();
+        if (!existAccountNode(flag, oriID)) {
+            cleanScreen();
+            cout << "抱歉,该账号不存在, 请确认输入或注册" << endl;
+            system("pause");
+            return;
+        }
+        cout << endl;
+        cout << "请输入该账号的原密码" << endl;
+        string passWord = cinLineString();
+        cleanScreen();
+        AccountNode* current = modifyTarget->next;
+        string* targetID;
+        string* targetPW;
+        bool judger = false;
+        while (NULL != current) {
+            if (current->ID == oriID) {
+                if (current->passWord == passWord) {
+                    targetID = &(current->ID);
+                    targetPW = &(current->passWord);
+                    judger = true;
+                }
+                break;
+            }
+            current = current->next;
+        }
+        if (judger == false) {
+            cout << "密码错误,请校验" << endl;
+            system("pause");
+            continue;
+        }
+        cleanScreen();
+        cout << "请选择修改账号或密码" << endl;
+        cout << "1. 账号      2. 密码" << endl;
+        cout << endl;
+        string chooseM = cinLineString();
+        cleanScreen();
+        cout << "请输入修改后的结果" << endl;
+        string finaly = cinLineString();
+        cleanScreen();
+        if (chooseM == "1") {
+            *targetID = finaly; 
+        } else if (chooseM == "2") {
+            *targetPW = finaly;
+        } else {
+            cout << "请输入正确的操作序号！" << endl;
+            sleepClean();
+            continue;
+        }
+        cout << "成功修改" << endl;
+        sleepClean();
+        return;
     }
 }
 void studentConfirm(void) {
@@ -1178,7 +1257,7 @@ void printOriginChoice(void) {//初始界面
     } else if ("4" == firstChoice) {
         adminLogin();
     } else if ("5" == firstChoice) {
-
+        accountModify();
     } else if ("6" == firstChoice) {
 
     } else if ("7" == firstChoice) {
