@@ -644,7 +644,150 @@ void studentIPOption(void) {
         cleanScreen();
     }
 }
-
+AccountNode* chooseAccount(void) {
+    while (1) {
+        cout << "请输入您要操作的账号类型:" << endl;
+        cout << "1. 学生        2. 老师" << endl;
+        cout << "3. 管理员      4. 返回上一级" << endl;
+        string answer = cinLineString();
+        cleanScreen();
+        AccountNode* tempHead = NULL;
+        if ("1" == answer) {
+            tempHead = studentAccountHead;
+        } else if ("2" == answer) {
+            tempHead = teacherAccountHead;
+        } else if ("3" == answer) {
+            tempHead = AdminAccountHead;
+        } else if ("4" == answer) {
+            return NULL;
+        }
+        cout << endl;
+        cout << "请输入其账号(enter以取消)" << endl;
+        string account = cinLineString();
+        cleanScreen();
+        if ("" == account) {
+            return NULL;
+        }
+        AccountNode* current = tempHead;
+        while (NULL != current->next) {
+            if (current->next->ID == account) {
+                return current;
+            }
+            current = current->next;
+        }
+        cout << "抱歉，该账号未查询到, 请重新输入或确认是否存在" << endl;
+        system("pause");
+        return NULL;
+    }
+}
+void accountOption(void) {
+    while (1) {
+        cleanScreen();
+        printf("            请输入选项序号以进行操作：\n");
+        printf("---------------------------------------------------\n");
+        printf("1. 新增账号密码             2. 删除账号密码\n");
+        printf("3. 修改账号密码             4. 查询账号密码\n");
+        printf("5. 查看所有账号密码         6. 返回上一级\n");
+        printf("---------------------------------------------------\n");
+        string answer = cinLineString();
+        cleanScreen();
+        if ("1" == answer) {
+            registerAccount();
+        } else if ("2" == answer) {
+            AccountNode* lastNode = chooseAccount();
+            if (NULL == lastNode) {
+                continue;
+            }
+            cout << "是否要将原账号\"" << lastNode->next->ID<< "\"删除?" << endl;
+            cout << "1. 删除    其他. 取消" << endl;
+            string delAnswer = cinLineString();
+            if (delAnswer != "1") {
+                continue;
+            }
+            AccountNode* delptr = lastNode->next;
+            lastNode->next = lastNode->next->next;
+            delete(delptr);
+            cout << "已删除" << endl;
+            sleepClean();
+        } else if ("3" == answer) {
+            AccountNode* lastNode = chooseAccount();
+            if (NULL == lastNode) {
+                continue;
+            }
+            string* target;
+            while (1) {
+                cout << "请输入待修改的类型:(enter以返回)" << endl;
+                cout << "1. 账号            2. 密码" << endl;
+                string modifyTarget = cinLineString();
+                if ("" == modifyTarget) {
+                    break;
+                }
+                if (modifyTarget == "1") {
+                    target = &(lastNode->next->ID);
+                } else if (modifyTarget == "2") {
+                    target = &(lastNode->next->passWord);
+                } else {
+                    cout << "请输入正确的操作序号！" << endl;
+                    sleepClean();
+                    continue;
+                }
+                cleanScreen();
+                cout << "要将原账号\"" << *target << "\"修改为?" << endl;
+                string modifynew = cinLineString();
+                *target = modifynew;
+                cleanScreen();
+                cout << "成功修改" << endl;
+                sleepClean();
+                break;
+            }
+        } else if ("4" == answer) {
+            AccountNode* lastNode = chooseAccount();
+            if (NULL == lastNode) {
+                continue;
+            }
+            cout << "账号\"" << lastNode->next->ID << "\"的密码是:" << endl;
+            cout << lastNode->next->passWord << endl;
+            cout << endl;
+            system("pause");
+        } else if ("5" == answer) {
+            AccountNode* tempNode = studentAccountHead->next;
+            cout << "-------学生账号密码:-------" << endl;
+            int count = 0;
+            while (NULL != tempNode) {
+                count++;
+                cout << count << ".  " << tempNode->ID << "       " << tempNode->passWord << endl;
+                tempNode = tempNode->next;
+            }
+            cout << endl;
+            cout << "-------老师账号密码:-------" << endl;
+            count = 0;
+            tempNode = teacherAccountHead->next;
+            while (NULL != tempNode) {
+                count++;
+                cout << count << ".  " << tempNode->ID << "       " << tempNode->passWord << endl;
+                tempNode = tempNode->next;
+            }
+            cout << endl;
+            cout << "-------管理员账号密码:-------" << endl;
+            count = 0;
+            tempNode = AdminAccountHead->next;
+            while (NULL != tempNode) {
+                count++;
+                cout << count << ".  " << tempNode->ID << "       " << tempNode->passWord << endl;
+                tempNode = tempNode->next;
+            }
+            cout << endl;
+            system("pause");
+        } else if ("6" == answer) {
+            cleanScreen();
+            return;
+        } else {
+            cout << "请输入正确的操作序号！" << endl;
+            sleepClean();
+            continue;
+        }
+    }
+}
 void studentOption(void) {
     cout << "开发中" << endl;
     sleepClean();
@@ -652,6 +795,7 @@ void studentOption(void) {
 void teacherOption(string clss) {
     while (1) {
         cleanScreen();
+        printf("                     教师菜单               \n");
         printf("            请输入选项序号以进行操作：\n");
         printf("---------------------------------------------------\n");
         printf("1. 学生信息增删改查     2. 查看班内成绩与成绩分析\n");
@@ -678,6 +822,7 @@ void teacherOption(string clss) {
 void adminOption(void) {
     while (1) {
         cleanScreen();
+        printf("                     管理员菜单               \n");
         printf("            请输入选项序号以进行操作：\n");
         printf("---------------------------------------------------\n");
         printf("1. 账号密码增删改查           2. 增删改查学生信息\n");
@@ -687,7 +832,7 @@ void adminOption(void) {
         printf("---------------------------------------------------\n");
         string answer = cinLineString();
         if (answer == "1") {
-
+            accountOption();
         } else if (answer == "2") {
             studentIPOption();
         } else if (answer == "3") {
@@ -703,8 +848,8 @@ void adminOption(void) {
         } else if (answer == "8") {
             break;
         } else {
-        cout << "请输入正确的操作序号！" << endl;
-        sleepClean();
+            cout << "请输入正确的操作序号！" << endl;
+            sleepClean();
         }
         cleanScreen();
     }
@@ -1012,13 +1157,15 @@ void allStorage(void) {
     studentIPStorage();
 }
 void printOriginChoice(void) {//初始界面
-    printf("       学生管理系统\n");
-    printf("-----------****-----------\n");
-    printf("1.注册账号     2.学生登陆\n");
-    printf("3.教师登陆     4.管理员登陆\n");
-    printf("5.账号修改     6.密码找回\n");
+    printf("|***               学生管理系统                \n");
+    printf("|                     主菜单                   \n");
+    printf("|            请输入选项序号以进行操作:          \n");
+    printf("---------------------------------------------------\n");
+    printf("1.注册账号                      2.学生登陆\n");
+    printf("3.教师登陆                      4.管理员登陆\n");
+    printf("5.账号修改                      6.密码找回\n");
     printf("7.保存信息并退出系统\n");
-    printf("-----------****-----------\n");
+    printf("---------------------------------------------------\n");
     cout << "请输入执行的操作" << endl;
     string firstChoice = cinLineString();
     cleanScreen();
