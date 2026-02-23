@@ -222,7 +222,48 @@ string cinLineString(void) {//读入整行函数
     getline(cin, lineAnswer);
     return lineAnswer;
 }
-
+//排序
+StudentsNode* merge(StudentsNode*s1, StudentsNode* s2, StudentsNode* last) {
+    if (NULL == s1 && NULL == s2) {
+        return NULL;
+    } else if (NULL == s1 && NULL != s2) {
+        s2->prev = last;
+        return s2;
+    } else if (NULL != s1 && NULL == s2) {
+        s1->prev = last;
+        return s1;
+    } else {
+        if (stoi(s1->score) < stoi(s2->score)) {
+            s2->prev = last;
+            s2->next = merge(s1, s2->next, s2);
+            return s2;
+        } else {
+            s1->prev = last;
+            s1->next = merge(s1->next, s2, s1);
+            return s1;
+        }
+    }
+}
+StudentsNode* mergeSort(StudentsNode* ori) {
+    if (ori == NULL) {
+        return NULL;
+    } else if (NULL == ori->next) {
+        return ori;
+    }
+    StudentsNode* left = ori;
+    StudentsNode* right = ori;
+    while (right->next != NULL && right->next->next != NULL) {
+        right = right->next->next;
+        left = left->next;
+    }
+    StudentsNode* temp = left->next;
+    temp->prev = NULL;
+    left->next = NULL;
+    StudentsNode* begin1 = mergeSort(ori);
+    StudentsNode* begin2 = mergeSort(temp);
+    return merge(begin1, begin2, NULL);
+}
+//
 void cleanScreen(void) {//清屏函数
     system("cls");
 }
@@ -326,6 +367,41 @@ void registerAccount(void) {//1
     }
     sleepClean();
 }
+void downloadStudent(void) {
+    string filename = "\\StudentScore.txt";
+    while (1) {
+        cleanScreen();
+        printf("请输入您要下载的文件夹路径(如: C:\\test\\student.bin)：\n");
+        printf("(注: 该操作会清除原文件所有内容, 单击Enter以退出)\n");
+        string path = cinLineString();
+        if ("" == path) {
+            return;
+        } else if (path.size() > 250) {
+            cout << "路径长度太长！请重新输入" << endl;
+            continue;
+        }
+        path += filename;
+        ofstream testFile(path);
+        if (!testFile.is_open()) {
+            cout << "抱歉，该路径下文件夹不存在或无打开权限" << endl;
+            cout << "请先正确创建文件夹再下载" << endl;
+            cout << endl;
+            system("pause");
+            continue;
+        }
+        testFile.close();
+        ofstream ofs(path, ios::trunc);
+        StudentsNode* current = studentHead->next;
+        while (NULL != current) {
+            ofs << current->name << "   " << current->score << "分    "<< current->clss << "班    学号" << current->number << endl;;
+            current = current->next;
+        }
+        ofs.close();
+        cout << "已成功下载" << endl;
+        sleepClean();
+        break;
+    }
+}
 
 StudentsNode* findStudentIP(void) {
     cleanScreen();
@@ -384,6 +460,45 @@ void showStudent(void) {
         count++;
         current = current->next;
     }
+    system("pause");
+}
+void showScore(string clss) {
+    StudentsNode* current = studentHead->next;
+    int bad = 0;
+    int middle = 0;
+    int good = 0;
+    int count = 0;
+    double sum = 0;
+    while (current != NULL) {
+        if (clss != "Admin" && current->clss != clss) {
+            current = current->next;
+            continue;
+        }
+        count++;
+        printf("第%d名  ", count);
+        cout << current->name << "    " << current->score << "分" << endl;
+        int score = stoi(current->score);
+        sum += score;
+        if (score < 90) {
+            bad++;
+        } else if (score >= 90 && score < 120) {
+            middle++;
+        } else {
+            good++;
+        }
+        current = current->next;
+    }
+    double even = sum / count;
+    cout << endl;
+    printf("本次统计共有%d名学生\n", count);
+    cout << endl;
+    printf("其中，达到优秀(120分及以上)的有%d人\n", good);
+    cout << endl;
+    printf("达到及格(90分及以上120分以下)的有%d人\n", middle);
+    cout << endl;
+    printf("不及格(90分以下)的有%d人\n", bad);
+    cout << endl;
+    printf("平均分为%lf\n",even);
     system("pause");
 }
 void studentIPOption(void) {
@@ -534,25 +649,24 @@ void studentOption(void) {
     cout << "开发中" << endl;
     sleepClean();
 }
-void teacherOption(void) {
+void teacherOption(string clss) {
     while (1) {
         cleanScreen();
         printf("            请输入选项序号以进行操作：\n");
         printf("---------------------------------------------------\n");
-        printf("1. 学生信息增删改查     2. 查看班内成绩\n");
-        printf("3. 学生信息下载         4. 成绩分析\n");
-        printf("5. 返回上一层\n");
+        printf("1. 学生信息增删改查     2. 查看班内成绩与成绩分析\n");
+        printf("3. 学生信息下载         4. 返回上一层\n");
         printf("---------------------------------------------------\n");
         string answer = cinLineString();
+        cleanScreen();
         if (answer == "1") {
             studentIPOption();
         } else if (answer == "2") {
-            
+            studentHead->next = mergeSort(studentHead->next);
+            showScore(clss);
         } else if (answer == "3") {
-        
+            downloadStudent();
         } else if (answer == "4") {
-            
-        } else if (answer == "5") {
             break;
         } else {
             cout << "请输入正确的操作序号！" << endl;
@@ -583,7 +697,7 @@ void adminOption(void) {
         } else if (answer == "5") {
             
         } else if (answer == "6") {
-            teacherOption();
+            teacherOption("Admin");
         } else if (answer == "7") {
             
         } else if (answer == "8") {
@@ -643,7 +757,7 @@ void teacherConfirm(void) {
             tempseek = tempseek->next;
         }
         if (flag == 1) {
-            teacherOption();
+            teacherOption(tempseek->clss);
             break;
         } else {
             printf("抱歉，您的工号未查询到，重新输入或退出？");
