@@ -493,7 +493,8 @@ void downloadAccount(void) {
 }
 void uploadAccount(void) {
     while (1) {
-        cout << "请输入学生账号密码的文件路径 :" << endl;
+        cleanScreen();
+        cout << "请输入学生账号密码的文件路径 :(enter以返回)" << endl;
         string pathS = cinLineString();
         if ("" == pathS) {
             return;
@@ -507,7 +508,7 @@ void uploadAccount(void) {
             cout << "请先正确创建文件夹再下载" << endl;
             cout << endl;
             system("pause");
-            continue;
+            return;
         }
         testFile.close();
         cout << "请输入教师账号密码的文件路径 :" << endl;
@@ -518,7 +519,7 @@ void uploadAccount(void) {
             cout << "路径长度太长！请重新输入" << endl;
             continue;
         }
-        ofstream testFile(pathT);
+        ofstream testFileS(pathT);
         if (!testFile.is_open()) {
             cout << "抱歉，该路径下文件夹不存在或无打开权限" << endl;
             cout << "请重新确认文件夹是否存在" << endl;
@@ -526,7 +527,7 @@ void uploadAccount(void) {
             system("pause");
             continue;
         }
-        testFile.close();
+        testFileS.close();
         ifstream ifsS(pathS);
         int length;
         ifsS >> length;
@@ -1053,14 +1054,57 @@ void studentOption(StudentsNode* current) {
         }
     }
 }
+void classAnalysis(string clss) {
+    studentHead->next = mergeSort(studentHead->next);
+    StudentsNode* current = studentHead->next;
+    int count = 0;
+    while (NULL != current) {
+        cleanScreen();
+        if (clss != "Admin" && current->clss != clss) {
+            current = current->next;
+            continue;
+        }
+        count++;
+        cout <<"--------------------------" << endl;
+        cout << "第" << count << "名: " << endl;
+        cout << current->name << "     " << current->score << endl;
+        cout <<"--------------------------" << endl;
+        cout << "1. 前一个    2. 退出    3. 后一个" << endl;
+        cout << endl;
+        string answer = cinLineString();
+        cleanScreen();
+        if (answer == "1") {
+            if (NULL == current->prev || studentHead == current->prev) {
+                cout << "这已经是第一个人了" << endl;
+                count--;
+                system("pause");
+                continue;
+            }
+            current = current->prev;
+        } else if (answer == "2") {
+            cleanScreen();
+            return;
+        } else if (answer == "3") {
+            if (NULL == current->next) {
+                cout << "这已经是最后一个人了" << endl;
+                count--;
+                system("pause");
+                continue;
+            }
+            current = current->next;
+        }
+    }
+    cout << "暂时还没有学生, 请添加" << endl;
+}
 void teacherOption(string clss) {
     while (1) {
         cleanScreen();
         printf("                     教师菜单               \n");
         printf("            请输入选项序号以进行操作：\n");
         printf("---------------------------------------------------\n");
-        printf("1. 学生信息增删改查     2. 查看班内成绩与成绩分析\n");
-        printf("3. 学生信息下载         4. 返回上一层\n");
+        printf("1. 学生信息增删改查     2. 成绩分析\n");
+        printf("3. 学生信息下载         4. 查看班内成绩\n");
+        printf("5. 返回上一层\n");
         printf("---------------------------------------------------\n");
         string answer = cinLineString();
         cleanScreen();
@@ -1072,6 +1116,8 @@ void teacherOption(string clss) {
         } else if (answer == "3") {
             downloadStudent();
         } else if (answer == "4") {
+            classAnalysis(clss);
+        } else if (answer == "5") {
             break;
         } else {
             cout << "请输入正确的操作序号！" << endl;
@@ -1080,6 +1126,41 @@ void teacherOption(string clss) {
         }
         cleanScreen();
     }
+}
+void transact(void) {
+    ReFind* current = refindNode;
+    while (NULL != current->next) {
+        cleanScreen();
+        cout << "密码找回:" << endl;
+        cout << "账号" << current->oriID << "  " << "密码" << current->oriPW << endl;
+        cout << "是否允许找回?" << endl;
+        cout << "1. 允许    2. 不允许" <<endl;
+        cout << "其他: 暂时跳过不处理" << endl;
+        string answer = cinLineString();
+        if ("1" == answer) {
+            current->next->newID = current->next->oriID;
+            current->next->newPW = current->next->oriPW;
+        } else if ("2" == answer) {
+            ReFind* delptr = current->next;
+            current->next = current->next->next;
+            delete(delptr);
+        }
+        current = current->next;
+        cleanScreen();
+        cout << "是否返回?" << endl;
+        cout << "1. 返回    2. 继续" << endl;
+        string isReturn = cinLineString();
+        if ("1" == isReturn) {
+            cleanScreen();
+            return;
+        } else if ("2" == isReturn) {
+            continue;
+        } else {
+            cout << "请输入正确的序号" << endl;
+        }
+    }
+    cleanScreen();
+    cout << "所有代办已解决" << endl;
 }
 void adminOption(void) {
     while (1) {
@@ -1106,7 +1187,7 @@ void adminOption(void) {
         } else if (answer == "6") {
             teacherOption("Admin");
         } else if (answer == "7") {
-            
+            transact();
         } else if (answer == "8") {
             break;
         } else {
