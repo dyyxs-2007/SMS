@@ -27,6 +27,16 @@ void teacherLogin(void);
 void studentOption(void);
 bool existPassWordNode(int flag, string passWord);
 
+struct ReFind{
+    string oriID;
+    string oriPW;
+    string newID;
+    string newPW;
+    ReFind* next;
+    ReFind() : next(NULL) {}
+    ReFind(string s1, string s2, string s3, string s4) : oriID(s1), oriPW(s2), newID(s3), newPW(s4), next(NULL) {}
+};
+
 struct AccountNode{//账号密码节点定义
     string ID;
     string passWord;
@@ -56,6 +66,7 @@ struct TeachersNode{//老师信息节点定义
 
 ////////////
 //链表全局头节点
+ReFind* refindNode = new ReFind();
 StudentsNode* studentHead = new StudentsNode();//学生细节信息头节点
 TeachersNode* teacherHead = new TeachersNode();//教师细节信息头节点
 AccountNode* studentAccountHead = new AccountNode();//学生账号链表头节点
@@ -178,14 +189,46 @@ void studentNodeRead(void) {//学生细节信息节点读取
     }
     ifs.close();
 }
+void reFindRead(void) {
+    ifstream ifs("C:\\Users\\dyyxs\\Desktop\\SMS\\date\\ReFind.bin", ios::binary);
+    if (!ifs) {
+        cout << "文件打开失败" << endl;
+        exit(1);
+    }
+    int length = -1;
+    ifs.read((char*)&length, sizeof(int));
+    for (int i = 0; i < length; i++) {
+        int size;
+        ifs.read((char*)&size, sizeof(int));
+        string oriID(size, '\0');
+        ifs.read((char*)&oriID[0], size);
+        ifs.read((char*)&size, sizeof(int));
+        string oriPW(size, '\0');
+        ifs.read((char*)&oriPW[0], size);
+        ifs.read((char*)&size, sizeof(int));
+        string newID(size, '\0');
+        ifs.read((char*)&newID[0], size);
+        ifs.read((char*)&size, sizeof(int));
+        string newPW(size, '\0');
+        ifs.read((char*)&newPW[0], size);
+
+        ReFind* temp = new ReFind(oriID, oriPW, newID, newPW);
+        ReFind* current = refindNode;
+        while (NULL != current->next) {
+            current = current->next;
+        }
+        current->next = temp;
+    }
+    ifs.close();
+}
 void allRead(void) {
     teacherNodeRead();//老师细节信息读取
     studentNodeRead();//学生细节信息读取
     accountRead(1);//1代表学生，0代表老师,2代表管理员
     accountRead(0);
     accountRead(2);
+    reFindRead();
 }
-
 bool judge(void) {
     cout << "确认您做出的操作吗？" << endl;
     cout << "1. 确认   其他. 取消" << endl;
@@ -212,7 +255,6 @@ bool scoreVerify(string score) {
         return true;
     }
 }
-
 void sleepClean(void) {//延迟清屏函数
     Sleep(600);
     system("cls");
@@ -222,7 +264,6 @@ string cinLineString(void) {//读入整行函数
     getline(cin, lineAnswer);
     return lineAnswer;
 }
-//排序
 StudentsNode* merge(StudentsNode*s1, StudentsNode* s2, StudentsNode* last) {
     if (NULL == s1 && NULL == s2) {
         return NULL;
@@ -263,7 +304,6 @@ StudentsNode* mergeSort(StudentsNode* ori) {
     StudentsNode* begin2 = mergeSort(temp);
     return merge(begin1, begin2, NULL);
 }
-//
 void cleanScreen(void) {//清屏函数
     system("cls");
 }
@@ -402,7 +442,122 @@ void downloadStudent(void) {
         break;
     }
 }
-
+void downloadAccount(void) {
+    string filename = "\\AccountDate.txt";
+    while (1) {
+        cleanScreen();
+        printf("请输入您要下载的文件夹路径(如: C:\\test\\student.bin)：\n");
+        printf("(注: 该操作会清除原文件所有内容, 单击Enter以退出)\n");
+        string path = cinLineString();
+        if ("" == path) {
+            return;
+        } else if (path.size() > 250) {
+            cout << "路径长度太长！请重新输入" << endl;
+            continue;
+        }
+        path += filename;
+        ofstream testFile(path);
+        if (!testFile.is_open()) {
+            cout << "抱歉，该路径下文件夹不存在或无打开权限" << endl;
+            cout << "请先正确创建文件夹再下载" << endl;
+            cout << endl;
+            system("pause");
+            continue;
+        }
+        testFile.close();
+        ofstream ofs(path, ios::trunc);
+        AccountNode* temp = studentAccountHead->next;
+        ofs << "学生账号:" << endl;
+        while (temp != NULL) {
+            ofs << "账号:" << temp->ID << "   " << "密码:" << temp->passWord << endl;
+            temp = temp->next;
+        } 
+        temp = teacherAccountHead->next;
+        ofs << "老师账号:" << endl;
+        while (temp != NULL) {
+            ofs << "账号:" << temp->ID << "   " << "密码:" << temp->passWord << endl;
+            temp = temp->next;
+        } 
+        temp = AdminAccountHead->next;
+        ofs << "管理员账号:" << endl;
+        while (temp != NULL) {
+            ofs << "账号:" << temp->ID << "   " << "密码:" << temp->passWord << endl;
+            temp = temp->next;
+        } 
+        ofs.close();
+        cleanScreen();
+        cout << "已成功下载到" << path << endl;
+        system("pause");
+        return;
+    }
+}
+void uploadAccount(void) {
+    while (1) {
+        cout << "请输入学生账号密码的文件路径 :" << endl;
+        string pathS = cinLineString();
+        if ("" == pathS) {
+            return;
+        } else if (pathS.size() > 250) {
+            cout << "路径长度太长！请重新输入" << endl;
+            continue;
+        }
+        ofstream testFile(pathS);
+        if (!testFile.is_open()) {
+            cout << "抱歉，该路径下文件夹不存在或无打开权限" << endl;
+            cout << "请先正确创建文件夹再下载" << endl;
+            cout << endl;
+            system("pause");
+            continue;
+        }
+        testFile.close();
+        cout << "请输入教师账号密码的文件路径 :" << endl;
+        string pathT = cinLineString();
+        if ("" == pathT) {
+            return;
+        } else if (pathT.size() > 250) {
+            cout << "路径长度太长！请重新输入" << endl;
+            continue;
+        }
+        ofstream testFile(pathT);
+        if (!testFile.is_open()) {
+            cout << "抱歉，该路径下文件夹不存在或无打开权限" << endl;
+            cout << "请重新确认文件夹是否存在" << endl;
+            cout << endl;
+            system("pause");
+            continue;
+        }
+        testFile.close();
+        ifstream ifsS(pathS);
+        int length;
+        ifsS >> length;
+        for (int i = 0; i < length; i++) {
+            string ID, passWord;
+            ifsS >> ID;
+            ifsS >> passWord;
+            if (!existAccountNode(1, ID)) {
+                AccountNode* temp = new AccountNode(ID, passWord);
+                temp->next = studentAccountHead->next;
+                studentAccountHead->next = temp;
+            }
+        }
+        ifsS.close();
+        ifstream ifs(pathT);
+        ifs >> length;
+        for (int i = 0; i < length; i++) {
+            string ID, passWord;
+            ifs >> ID;
+            ifs >> passWord;
+            if (!existAccountNode(2, ID)) {
+                AccountNode* temp = new AccountNode(ID, passWord);
+                temp->next = teacherAccountHead->next;
+                teacherAccountHead->next = temp;
+            }
+        }
+        ifs.close();
+        cout << "成功导入" << endl;
+        break;
+    }
+}
 StudentsNode* findStudentIP(void) {
     cleanScreen();
     cout << "请选择根据名字或学号操作" << endl;
@@ -788,9 +943,115 @@ void accountOption(void) {
         }
     }
 }
-void studentOption(void) {
-    cout << "开发中" << endl;
-    sleepClean();
+void studentShow(string clss) {
+    studentHead->next = mergeSort(studentHead->next);
+    StudentsNode* current = studentHead->next;
+    int count = 0;
+    while (current != NULL) {
+        if (clss != "Admin" && current->clss != clss) {
+            current = current->next;
+            continue;
+        }
+        count++;
+        printf("第%d名  ", count);
+        cout << current->name << "    " << current->score << "分" << endl;
+        current = current->next;
+    }
+    system("pause");
+}
+void scoreAnalysis(string clss, string number) {
+    StudentsNode* current = studentHead->next;
+    int bad = 0;
+    int middle = 0;
+    int good = 0;
+    int count = 0;
+    double sum = 0;
+    int score = 0;
+    int max = -INT_MAX;
+    int mineS = 0;
+    while (current != NULL) {
+        if (clss != "Admin" && current->clss != clss) {
+            current = current->next;
+            continue;
+        }
+        count++;
+        if (current->number == number) {
+            cout << "  *我*  ";
+            mineS = stoi(current->score);
+        }
+        printf("第%d名  ", count);
+        cout << current->name << "    " << current->score << "分" << endl;
+        score = stoi(current->score);
+        if (score > max) {
+            max = score;
+        }
+        sum += score;
+        if (score < 90) {
+            bad++;
+        } else if (score >= 90 && score < 120) {
+            middle++;
+        } else {
+            good++;
+        }
+        current = current->next;
+    }
+    double even = sum / count;
+    cout << endl;
+    cout << "本次考试, 班级平均分为" << even << ", 你的得分是" << mineS;
+    if ((double)score >= even) {
+        cout << "   继续加油" << endl;
+    } else {
+        cout << "   继续保持" << endl;
+    }
+    cout << endl;
+    cout << "---条形统计图如下:---" << endl;
+    cout << endl;
+    string maxScore = "-";
+    string mineScore = "-";
+    string eveScore = "-";
+    for (int i = 0; i < max / 10; i++) {
+        maxScore += "||";
+    }
+    for (int i = 0; i < mineS / 10; i++) {
+        mineScore += "||";
+    }
+    for (int i = 0; i < (int)even / 10; i++) {
+        eveScore += "||";
+    }
+    cout << "最高成绩" << maxScore << endl;
+    cout << "我的成绩" << mineScore << endl;
+    cout << "平均成绩" << eveScore << endl;
+    cout << endl;
+    system("pause");
+}
+void studentOption(StudentsNode* current) {
+    while (1) {
+        cleanScreen();
+        printf("                     学生菜单               \n");
+        printf("            请输入选项序号以进行操作：\n");
+        printf("---------------------------------------------------\n");
+        printf("1. 成绩查询         2. 查询本班成绩\n");
+        printf("3. 成绩分析         4. 返回上一级\n");
+        printf("---------------------------------------------------\n");
+        string answer = cinLineString();
+        cleanScreen();
+        if ("1" == answer) {
+            cout << current->name << ", 您的成绩是" << current->score << "分" << endl;
+            system("pause");
+        } else if ("2" == answer) {
+            studentShow(current->clss);
+        } else if ("3" == answer) {
+            studentHead->next = mergeSort(studentHead->next);
+            scoreAnalysis(current->clss, current->number);
+        } else if ("4" == answer) {
+            cleanScreen();
+            return;
+        } else {
+            cout << "请输入正确的操作序号！" << endl;
+            sleepClean();
+            continue;
+        }
+    }
 }
 void teacherOption(string clss) {
     while (1) {
@@ -815,6 +1076,7 @@ void teacherOption(string clss) {
         } else {
             cout << "请输入正确的操作序号！" << endl;
             sleepClean();
+            continue;
         }
         cleanScreen();
     }
@@ -838,9 +1100,9 @@ void adminOption(void) {
         } else if (answer == "3") {
             
         } else if (answer == "4") {
-            
+            uploadAccount();
         } else if (answer == "5") {
-            
+            downloadAccount();
         } else if (answer == "6") {
             teacherOption("Admin");
         } else if (answer == "7") {
@@ -853,6 +1115,76 @@ void adminOption(void) {
             continue;
         }
         cleanScreen();
+    }
+}
+void retievePW(void) {//密码找回
+    while (1) {
+        cleanScreen();
+        AccountNode* current = NULL;
+        cout << "请输入需要找回密码的账号类型(enter以返回)" << endl;
+        cout << "1. 学生        2. 教师" <<endl;
+        string answer = cinLineString();
+        if (answer == "1") {
+            current = studentAccountHead->next;
+        } else if (answer == "2") {
+            current = teacherAccountHead->next;
+        } else if ("" == answer) {
+            return;
+        } else {
+            cout << "请输入正确的操作序号！" << endl;
+            sleepClean();
+            continue;
+        }
+        cleanScreen();
+        cout << "请输入账号(enter以返回)" << endl;
+        string ID = cinLineString();
+        cleanScreen();
+        if ("" == ID) {
+            return;
+        }
+        ReFind* findptr = refindNode;
+        while (NULL != findptr->next) {
+            if (findptr->next->newPW != "" && findptr->next->oriID == ID) {
+                cout << "您的密码是:" << findptr->next->newPW << endl;
+                cout << "请牢记" << endl;
+                cout << endl;
+                system("pause");
+                ReFind* delptr = findptr->next;
+                findptr->next = findptr->next->next;
+                delete(delptr);
+                return;
+            } else if (findptr->next->newPW == "" && findptr->next->oriID == ID) {
+                cout << "您的请求已提交过, 请等待处理结果" << endl;
+                system("pause");
+                cleanScreen();
+                return;
+            }
+            findptr = findptr->next;
+        }
+        cleanScreen();
+        bool flag = false;
+        string passWord;
+        while (current != NULL) {
+            if (current->ID == ID) {
+                flag = true;
+                passWord = current->passWord;
+                break;
+            }
+            current = current->next;
+        }
+        if (flag == false) {
+            cout << "未查询到该账号存在,请确认" << endl;
+            system("pause");
+            continue;
+        }
+        ReFind* tempptr = new ReFind(ID, passWord, "", "");
+        ReFind* addptr = refindNode;
+        while (NULL != addptr->next) {
+            addptr = addptr->next;
+        }
+        addptr->next = tempptr;
+        cout << "已将申请提交, 等待管理员审核,通过后再次来到此界面即可" << endl;
+        system("pause");
     }
 }
 void accountModify(void) {
@@ -948,7 +1280,7 @@ void studentConfirm(void) {
             tempseek = tempseek->next;
         }
         if (flag == 1) {
-            studentOption();
+            studentOption(tempseek);
             break;
         } else {
             printf("抱歉，您的学号未查询到，重新输入或退出？");
@@ -1228,12 +1560,83 @@ void teacherIPStorage(void) {
     }
     ofs.close();
 }
+void refindStorage(void) {
+    ReFind* current = refindNode->next;
+    ReFind* temp = refindNode->next;
+    int count = 0;
+    while (temp != NULL) {
+        count++;
+        temp = temp->next;
+    }
+    ofstream ofs("C:\\Users\\dyyxs\\Desktop\\SMS\\date\\ReFind.bin", ios::binary | ios::trunc);
+    if (!ofs) {
+        cout << "文件打开失败" << endl;
+    }
+    ofs.write((char*)&count, sizeof(int));
+    for (int i = 0; i < count; i++) {
+        int length = current->oriID.size();
+        ofs.write((char*)&length, sizeof(int));
+        ofs.write((char*)&current->oriID[0], length);
+        length = current->oriPW.size();
+        ofs.write((char*)&length, sizeof(int));
+        ofs.write((char*)&current->oriPW[0], length);
+        length = current->newID.size();
+        ofs.write((char*)&length, sizeof(int));
+        ofs.write((char*)&current->newID[0], length);
+        length = current->newPW.size();
+        ofs.write((char*)&length, sizeof(int));
+        ofs.write((char*)&current->newPW[0], length);
+        current = current->next;
+    }
+    ofs.close();
+}
+void freeAll(void) {
+    AccountNode* current = studentAccountHead;
+    while (NULL != current) {
+        AccountNode* delptr = current;
+        current = current->next;
+        delete(delptr);
+    }
+    current = teacherAccountHead;
+    while (NULL != current) {
+        AccountNode* delptr = current;
+        current = current->next;
+        delete(delptr);
+    }
+    current = AdminAccountHead;
+    while (NULL != current) {
+        AccountNode* delptr = current;
+        current = current->next;
+        delete(delptr);
+    }
+
+    ReFind* refindCurrent = refindNode;
+    while (NULL != refindCurrent) {
+        ReFind* delptr = refindCurrent;
+        refindCurrent = refindCurrent->next;
+        delete(delptr);
+    }
+    TeachersNode* teacherCurrent = teacherHead;
+    while (NULL != teacherCurrent) {
+        TeachersNode* delptr = teacherCurrent;
+        teacherCurrent = teacherCurrent->next;
+        delete(delptr);
+    }
+    StudentsNode* studentCurrent = studentHead;
+    while (NULL != studentCurrent) {
+        StudentsNode* delptr = studentCurrent;
+        studentCurrent = studentCurrent->next;
+        delete(delptr);
+    }
+}
 void allStorage(void) {
     dateStorage(0);
     dateStorage(1);
     dateStorage(2);
     teacherIPStorage();
     studentIPStorage();
+    refindStorage();
+    freeAll();
 }
 void printOriginChoice(void) {//初始界面
     printf("|***               学生管理系统                \n");
@@ -1259,7 +1662,7 @@ void printOriginChoice(void) {//初始界面
     } else if ("5" == firstChoice) {
         accountModify();
     } else if ("6" == firstChoice) {
-
+        retievePW();
     } else if ("7" == firstChoice) {
         allStorage();
         cout << "感谢使用学生管理系统" << endl;
