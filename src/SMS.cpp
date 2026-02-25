@@ -31,8 +31,9 @@ struct ReFind{
     string newID;
     string newPW;
     ReFind* next;
+    int flag;
     ReFind() : next(NULL) {}
-    ReFind(string s1, string s2, string s3, string s4) : oriID(s1), oriPW(s2), newID(s3), newPW(s4), next(NULL) {}
+    ReFind(string s1, string s2, string s3, string s4, int s5) : oriID(s1), oriPW(s2), newID(s3), newPW(s4), next(NULL), flag(s5) {}
 };
 struct AccountNode{//账号密码节点定义
     string ID;
@@ -205,8 +206,9 @@ void reFindRead(void) {
         ifs.read((char*)&size, sizeof(int));
         string newPW(size, '\0');
         ifs.read((char*)&newPW[0], size);
-
-        ReFind* temp = new ReFind(oriID, oriPW, newID, newPW);
+        int flag;
+        ifs.read((char*)&flag, sizeof(int));
+        ReFind* temp = new ReFind(oriID, oriPW, newID, newPW, flag);
         ReFind* current = refindNode;
         while (NULL != current->next) {
             current = current->next;
@@ -1407,6 +1409,7 @@ void retievePW(void) {//密码找回
     while (1) {
         cleanScreen();
         AccountNode* current = NULL;
+        int flagS = 1;//1学生2老师
         cout << "请输入需要找回密码的账号类型(enter以返回)" << endl;
         cout << "1. 学生        2. 教师" <<endl;
         string answer = cinLineString();
@@ -1414,6 +1417,7 @@ void retievePW(void) {//密码找回
             current = studentAccountHead->next;
         } else if (answer == "2") {
             current = teacherAccountHead->next;
+            flagS = 2;
         } else if ("" == answer) {
             return;
         } else {
@@ -1430,7 +1434,7 @@ void retievePW(void) {//密码找回
         }
         ReFind* findptr = refindNode;
         while (NULL != findptr->next) {
-            if (findptr->next->newPW != "" && findptr->next->oriID == ID) {
+            if (findptr->next->newPW != "" && findptr->next->oriID == ID && findptr->next->flag == flagS) {
                 cout << "您的密码是:" << findptr->next->newPW << endl;
                 cout << "请牢记" << endl;
                 cout << endl;
@@ -1439,7 +1443,7 @@ void retievePW(void) {//密码找回
                 findptr->next = findptr->next->next;
                 delete(delptr);
                 return;
-            } else if (findptr->next->newPW == "" && findptr->next->oriID == ID) {
+            } else if (findptr->next->newPW == "" && findptr->next->oriID == ID && findptr->next->flag == flagS) {
                 cout << "您的请求已提交过, 请等待处理结果" << endl;
                 system("pause");
                 cleanScreen();
@@ -1463,7 +1467,7 @@ void retievePW(void) {//密码找回
             system("pause");
             continue;
         }
-        ReFind* tempptr = new ReFind(ID, passWord, "", "");
+        ReFind* tempptr = new ReFind(ID, passWord, "", "", flagS);
         ReFind* addptr = refindNode;
         while (NULL != addptr->next) {
             addptr = addptr->next;
@@ -1872,6 +1876,7 @@ void refindStorage(void) {
         length = current->newPW.size();
         ofs.write((char*)&length, sizeof(int));
         ofs.write((char*)&current->newPW[0], length);
+        ofs.write((char*)&current->flag, sizeof(int));
         current = current->next;
     }
     ofs.close();
