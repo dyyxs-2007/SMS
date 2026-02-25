@@ -15,7 +15,6 @@
 #include<fstream>
 #define MAX_SCORE 150
 using namespace std;
-
 string cinLineString(void);
 void printOriginChoice(void);
 void originLogin(void);
@@ -26,7 +25,6 @@ void sleepClean(void);
 void teacherLogin(void);
 void studentOption(void);
 bool existPassWordNode(int flag, string passWord);
-
 struct ReFind{
     string oriID;
     string oriPW;
@@ -36,7 +34,6 @@ struct ReFind{
     ReFind() : next(NULL) {}
     ReFind(string s1, string s2, string s3, string s4) : oriID(s1), oriPW(s2), newID(s3), newPW(s4), next(NULL) {}
 };
-
 struct AccountNode{//账号密码节点定义
     string ID;
     string passWord;
@@ -54,7 +51,6 @@ struct StudentsNode{//学生信息节点定义
     StudentsNode() : next(NULL), prev(NULL) {}
     StudentsNode(string s1, string s2, string s3, string s4) : next(NULL), prev(NULL), name(s1), score(s2), number(s3), clss(s4) {}
 };
-
 struct TeachersNode{//老师信息节点定义
     TeachersNode* next;
     string name;
@@ -63,8 +59,6 @@ struct TeachersNode{//老师信息节点定义
     TeachersNode() : next(NULL) {}
     TeachersNode(string s1, string s2, string s3) : next(NULL), name(s1), number(s2), clss(s3) {}
 };
-
-////////////
 //链表全局头节点
 ReFind* refindNode = new ReFind();
 StudentsNode* studentHead = new StudentsNode();//学生细节信息头节点
@@ -360,6 +354,16 @@ bool existStudentNode(string number) {
     }
     return false;
 }
+bool existTeacherNode(string number) {
+    TeachersNode* temp = teacherHead->next;
+    while (temp) {
+        if (temp->number == number) {
+            return true;
+        }
+        temp = temp->next;
+    }
+    return false;
+}
 void registerAccount(void) {//1
     while (1) {
         cleanScreen();
@@ -600,6 +604,48 @@ StudentsNode* findStudentIP(void) {
         return findStudentIP();
     }
 }
+TeachersNode* findTeacherIP(void) {
+    cleanScreen();
+    cout << "请选择根据名字或工号操作" << endl;
+    cout << "1. 名字         2. 工号" << endl;
+    cout << "3. 返回" << endl;
+    string answer = cinLineString();
+    cleanScreen();
+    if ("1" == answer) {
+        cout << "请输入名字" << endl;
+        string target = cinLineString();
+        TeachersNode* tempNode = teacherHead;
+        while (NULL != tempNode->next) {
+            if (target == tempNode->next->name) {
+                return tempNode;
+            }
+            tempNode = tempNode->next;
+        }
+        cout << "抱歉，该教师信息未查询到，可能是输入错误或者信息尚未录入!" << endl;
+        system("pause");
+        return NULL;
+    } else if ("2" == answer) {
+        cout << "请输入工号" << endl;
+        string target = cinLineString();
+        TeachersNode* tempNode = teacherHead;
+        while (NULL != tempNode->next) {
+            if (target == tempNode->next->number) {
+                return tempNode;
+            }
+            tempNode = tempNode->next;
+        }
+        cout << "抱歉，该教师信息未查询到，可能是输入错误或者信息尚未录入!" << endl;
+        system("pause");
+        return NULL;
+    } else if (answer == "3") {
+        return NULL;
+    } else {
+        cout << "请输入正确的操作序号！" << endl;
+        sleepClean();
+        return findTeacherIP();
+    }
+
+}
 void showStudent(void) {
     StudentsNode* current = studentHead->next;
     if (NULL == current) {
@@ -612,6 +658,23 @@ void showStudent(void) {
         cout << "班级：" << current->clss << endl;
         cout << "成绩：" << current->score << endl;
         cout << "学号：" << current->number << endl;
+        cout << endl;
+        count++;
+        current = current->next;
+    }
+    system("pause");
+}
+void showTeacher(void) {
+    TeachersNode* current = teacherHead->next;
+    if (NULL == current) {
+        cout << "暂时还没有教师信息，请增添" << endl;
+    }
+    int count = 1;
+    while (NULL != current) {
+        printf("%d-------------------------------\n", count);
+        cout << "姓名：" << current->name << endl;
+        cout << "班级：" << current->clss << endl;
+        cout << "工号：" << current->number << endl;
         cout << endl;
         count++;
         current = current->next;
@@ -738,9 +801,10 @@ void studentIPOption(void) {
                 continue;
             }
             string* ptrTarget;
+            bool flag = true;
             while (1) {
                 cleanScreen();
-                cout << "请问修改什么信息?" <<endl;
+                cout << "请问修改什么信息?(enter以退出)" <<endl;
                 cout << "1. 姓名    2. 班级" << endl;
                 cout << "3. 学号    4. 分数" << endl;
                 cout << endl;
@@ -757,11 +821,17 @@ void studentIPOption(void) {
                 } else if (modifyO == "4") {
                     ptrTarget = &(target->next->score);
                     break;
+                } else if (modifyO == "") {
+                    flag = false;
+                    break;
                 } else {
                     cout << "请输入正确的操作序号！" << endl;
                     sleepClean();
                     continue;
                 }
+            }
+            if (false == flag) {
+                continue;
             }
             cout << endl;
             cout << "请输入修改后的结果" << endl;
@@ -792,6 +862,136 @@ void studentIPOption(void) {
         } else if (answer == "5") {
             showStudent();
         } else if (answer == "6") {
+            return;
+        } else {
+            cout << "请输入正确的操作序号！" << endl;
+            sleepClean();
+        }
+        cleanScreen();
+    }
+}
+void teacherIPOption(void) {
+    while (1) {
+        cleanScreen();
+        printf("            请输入选项序号以进行操作：\n");
+        printf("---------------------------------------------------\n");
+        printf("1. 新增教师信息             2. 删除教师信息\n");
+        printf("3. 修改教师信息             4. 查找教师信息\n");
+        printf("5. 教师信息展示             6. 返回上一层\n");
+        printf("---------------------------------------------------\n");
+        string answer = cinLineString();
+        cleanScreen();
+        if ("1" == answer) {
+            cout << "请输入该教师姓名" << endl;
+            string name = cinLineString();
+            cout << "请输入该教师工号" << endl;
+            string number = cinLineString();
+            if (existTeacherNode(number)) {
+                cleanScreen();
+                cout << "抱歉，该工号已存在" <<endl;
+                system("pause");
+                cleanScreen();
+                continue;
+            }
+            cout << "请输入该教师管理的班级" << endl;
+            string clss = cinLineString();
+            if (!judge()) {
+                cleanScreen();
+                cout << "好的，您的请求已取消" << endl;
+                sleepClean();
+                continue;
+            }
+            TeachersNode* newptr = new TeachersNode(name, number, clss);
+            TeachersNode* seek = teacherHead;
+            while (NULL != seek->next) {
+                seek = seek->next;
+            }
+            seek->next = newptr;
+            cleanScreen();
+            cout << "添加成功" << endl;
+            sleepClean();
+        } else if ("2" == answer) {
+            TeachersNode* current = findTeacherIP();
+            if (NULL == current) {
+                cleanScreen();
+                continue;
+            }
+            if (!judge()) {
+                cleanScreen();
+                cout << "好的，您的请求已取消" << endl;
+                sleepClean();
+                continue;
+            }
+            TeachersNode* delptr = current->next;
+            current->next = current->next->next;
+            delete(delptr);
+            cleanScreen();
+            cout << "已删除" << endl;
+            sleepClean();
+        } else if ("3" == answer) {
+            TeachersNode* target = findTeacherIP();
+            if (NULL == target) {
+                continue;
+            }
+            string* ptrTarget;
+            bool flag = true;
+            while (1) {
+                cleanScreen();
+                cout << "请问修改什么信息?(enter以返回)" <<endl;
+                cout << "1. 姓名    2. 班级" << endl;
+                cout << "3. 工号" << endl;
+                cout << endl;
+                string modifyO = cinLineString();
+                if (modifyO == "1") {
+                    ptrTarget = &(target->next->name);
+                    break;
+                } else if (modifyO == "2") {
+                    ptrTarget = &(target->next->clss);
+                    break;
+                } else if (modifyO == "3") {
+                    ptrTarget = &(target->next->number);
+                    break;
+                } else if (modifyO == "") {
+                    flag = false;
+                    break;
+                } else {
+                    cout << "请输入正确的操作序号！" << endl;
+                    sleepClean();
+                    continue;
+                }
+            }
+            if (false == flag) {
+                continue;
+            }
+            cout << endl;
+            cout << "请输入修改后的结果" << endl;
+            string modifyA = cinLineString();
+            cleanScreen();
+            if (!judge()) {
+                cleanScreen();
+                cout << "好的，您的请求已取消" << endl;
+                sleepClean();
+                continue;
+            }
+            *ptrTarget = modifyA;
+            cout << "已修改" << endl;
+            sleepClean();
+        } else if ("4" == answer) {
+            TeachersNode* current = findTeacherIP();
+            if (NULL == current) {
+                cleanScreen();
+                continue;
+            }
+            cleanScreen();
+            cout << "姓名: " << current->next->name << endl;
+            cout << "工号: " << current->next->number << endl;
+            cout << "班级: " << current->next->clss << endl;
+            cout << endl;
+            system("pause");
+        } else if ("5" == answer) {
+            showTeacher();
+        } else if ("6" == answer) {
+            cleanScreen();
             return;
         } else {
             cout << "请输入正确的操作序号！" << endl;
@@ -1080,6 +1280,7 @@ void classAnalysis(string clss) {
                 system("pause");
                 continue;
             }
+            count = count - 2;
             current = current->prev;
         } else if (answer == "2") {
             cleanScreen();
@@ -1092,6 +1293,10 @@ void classAnalysis(string clss) {
                 continue;
             }
             current = current->next;
+        } else {
+            cleanScreen();
+            cout << "请输入正确的序号" << endl;
+            sleepClean();
         }
     }
     cout << "暂时还没有学生, 请添加" << endl;
@@ -1179,7 +1384,7 @@ void adminOption(void) {
         } else if (answer == "2") {
             studentIPOption();
         } else if (answer == "3") {
-            
+            teacherIPOption();
         } else if (answer == "4") {
             uploadAccount();
         } else if (answer == "5") {
@@ -1760,7 +1965,6 @@ void originLogin(void) {//初始登入界面
         printOriginChoice();
     }
 }
-
 int main() {
     /*
     string filename = "C:\\Users\\dyyxs\\Desktop\\SMS\\date\\AdminDate.bin";
