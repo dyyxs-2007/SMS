@@ -16,8 +16,8 @@
 #define MAX_SCORE 150
 #define MAX_INPUT 600
 #define MAX_COUNT 4
-#define MAX_TIME 3000
-#define MAX_CIN 31
+#define MAX_TIME 4000
+#define MAX_CIN 4
 
 using namespace std;
 string cinLineString(void);
