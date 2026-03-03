@@ -14,6 +14,11 @@
 #include<ranges>
 #include<fstream>
 #define MAX_SCORE 150
+#define MAX_INPUT 600
+#define MAX_COUNT 4
+#define MAX_TIME 3000
+#define MAX_CIN 31
+
 using namespace std;
 string cinLineString(void);
 void printOriginChoice(void);
@@ -68,6 +73,7 @@ AccountNode* studentAccountHead = new AccountNode();//学生账号链表头节点
 AccountNode* teacherAccountHead = new AccountNode();//教师账号链表头节点
 AccountNode* AdminAccountHead = new AccountNode();//管理员账号链表头节点
 ////////////账号链表读取
+queue<DWORD> callTimes;
 void teacherNodeRead(void) {//老师细节信息节点读取
     ifstream ifs("C:\\Users\\dyyxs\\Desktop\\SMS\\date\\TeacherIP.bin",  ios::binary);
     if (!ifs) {
@@ -256,6 +262,19 @@ void sleepClean(void) {//延迟清屏函数
     system("cls");
 }
 string cinLineString(void) {//读入整行函数
+    DWORD now = GetTickCount();
+    while (!callTimes.empty() && now - callTimes.front() > MAX_TIME) {
+        callTimes.pop();
+    }
+    if (callTimes.size() >= MAX_CIN) {
+        cout << endl;
+        cout << "---------------------------------" << endl;
+        cout << "输入文本过多, 疑似恶意攻击,自动退出" << endl;
+        cout << "---------------------------------" << endl;
+        exit(1);
+    }
+    callTimes.push(now);
+
     string lineAnswer;
     getline(cin, lineAnswer);
     return lineAnswer;
@@ -1336,10 +1355,10 @@ void teacherOption(string clss) {
 }
 void transact(void) {
     ReFind* current = refindNode;
-    while (NULL != current->next) {
+    while (NULL != current && NULL != current->next) {
         cleanScreen();
         cout << "密码找回:" << endl;
-        cout << "账号" << current->oriID << "  " << "密码" << current->oriPW << endl;
+        cout << "账号" << current->next->oriID << "  " << "密码" << current->next->oriPW << endl;
         cout << "是否允许找回?" << endl;
         cout << "1. 允许    2. 不允许" <<endl;
         cout << "其他: 暂时跳过不处理" << endl;
@@ -1351,8 +1370,14 @@ void transact(void) {
             ReFind* delptr = current->next;
             current->next = current->next->next;
             delete(delptr);
+            if (NULL == current || NULL == current->next) {
+                break;
+            }
         }
         current = current->next;
+        if (NULL == current->next) {
+            break;
+        }
         cleanScreen();
         cout << "是否返回?" << endl;
         cout << "1. 返回    2. 继续" << endl;
@@ -1368,6 +1393,7 @@ void transact(void) {
     }
     cleanScreen();
     cout << "所有代办已解决" << endl;
+    sleepClean();
 }
 void adminOption(void) {
     while (1) {
@@ -1475,6 +1501,7 @@ void retievePW(void) {//密码找回
         addptr->next = tempptr;
         cout << "已将申请提交, 等待管理员审核,通过后再次来到此界面即可" << endl;
         system("pause");
+        return;
     }
 }
 void accountModify(void) {
@@ -1971,6 +1998,7 @@ void originLogin(void) {//初始登入界面
     }
 }
 int main() {
+
     /*
     string filename = "C:\\Users\\dyyxs\\Desktop\\SMS\\date\\AdminDate.bin";
     ofstream fls(filename, ios::trunc | ios::binary);
@@ -1994,6 +2022,7 @@ int main() {
     cout << out << endl;
     fls1.close();
     */
+   ///
     originLogin();//初始登入
     return 0;
 }
