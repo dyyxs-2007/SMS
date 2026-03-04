@@ -261,6 +261,16 @@ void sleepClean(void) {//延迟清屏函数
     Sleep(600);
     system("cls");
 }
+void recurssion(void) {
+    cleanScreen();
+    string target;
+    getline(cin, target);
+    while (target != "") {
+        getline(cin, target);
+    }
+    cleanScreen();
+    return;
+}
 string cinLineString(void) {//读入整行函数
     DWORD now = GetTickCount();
     while (!callTimes.empty() && now - callTimes.front() > MAX_TIME) {
@@ -269,16 +279,18 @@ string cinLineString(void) {//读入整行函数
     if (callTimes.size() >= MAX_CIN) {
         cout << endl;
         cout << "---------------------------------" << endl;
-        cout << "输入文本过多, 疑似恶意攻击,自动退出" << endl;
+        cout << "输入文本过多, 疑似恶意攻击" << endl;
         cout << "---------------------------------" << endl;
-        exit(1);
+        cout << "连续enter以继续(文本过大产生的错误)";
+        system("pause");
+        recurssion();
     }
     callTimes.push(now);
-
     string lineAnswer;
     getline(cin, lineAnswer);
     return lineAnswer;
 }
+
 StudentsNode* merge(StudentsNode*s1, StudentsNode* s2, StudentsNode* last) {
     if (NULL == s1 && NULL == s2) {
         return NULL;
