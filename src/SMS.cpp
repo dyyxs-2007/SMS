@@ -74,6 +74,7 @@ AccountNode* teacherAccountHead = new AccountNode();//教师账号链表头节点
 AccountNode* AdminAccountHead = new AccountNode();//管理员账号链表头节点
 ////////////账号链表读取
 queue<DWORD> callTimes;
+vector<StudentsNode*>modify;
 void teacherNodeRead(void) {//老师细节信息节点读取
     ifstream ifs("C:\\Users\\dyyxs\\Desktop\\SMS\\date\\TeacherIP.bin",  ios::binary);
     if (!ifs) {
@@ -284,13 +285,13 @@ string cinLineString(void) {//读入整行函数
         cout << "连续enter以继续(文本过大产生的错误)";
         system("pause");
         recurssion();
+        originLogin();
     }
     callTimes.push(now);
     string lineAnswer;
     getline(cin, lineAnswer);
     return lineAnswer;
 }
-
 StudentsNode* merge(StudentsNode*s1, StudentsNode* s2, StudentsNode* last) {
     if (NULL == s1 && NULL == s2) {
         return NULL;
@@ -835,7 +836,9 @@ void studentIPOption(void) {
             }
             string* ptrTarget;
             bool flag = true;
+            bool isScore = true;
             while (1) {
+                isScore = true;
                 cleanScreen();
                 cout << "请问修改什么信息?(enter以退出)" <<endl;
                 cout << "1. 姓名    2. 班级" << endl;
@@ -852,6 +855,7 @@ void studentIPOption(void) {
                     ptrTarget = &(target->next->number);
                     break;
                 } else if (modifyO == "4") {
+                    isScore = false;
                     ptrTarget = &(target->next->score);
                     break;
                 } else if (modifyO == "") {
@@ -869,6 +873,14 @@ void studentIPOption(void) {
             cout << endl;
             cout << "请输入修改后的结果" << endl;
             string modifyA = cinLineString();
+            cleanScreen();
+            if (isScore == false) {
+                if (!scoreVerify(modifyA)) {
+                    cout << "抱歉，您输入的成绩不合适，请输入0~150区间的数字" << endl;
+                    sleepClean();
+                    continue;
+                }
+            }
             cleanScreen();
             if (!judge()) {
                 cleanScreen();
@@ -1265,7 +1277,9 @@ void studentOption(StudentsNode* current) {
         printf("            请输入选项序号以进行操作：\n");
         printf("---------------------------------------------------\n");
         printf("1. 成绩查询         2. 查询本班成绩\n");
-        printf("3. 成绩分析         4. 返回上一级\n");
+        printf("3. 成绩分析         4. 成绩申诉\n");
+        printf("5. 返回上一级\n");
+
         printf("---------------------------------------------------\n");
         string answer = cinLineString();
         cleanScreen();
@@ -1278,6 +1292,11 @@ void studentOption(StudentsNode* current) {
             studentHead->next = mergeSort(studentHead->next);
             scoreAnalysis(current->clss, current->number);
         } else if ("4" == answer) {
+            cleanScreen();
+            modify.push_back(current);
+            cout << "您的成绩申诉申请已提交" << endl;
+            sleepClean();
+        } else if ("5" == answer) {
             cleanScreen();
             return;
         } else {
@@ -1407,6 +1426,55 @@ void transact(void) {
     cout << "所有代办已解决" << endl;
     sleepClean();
 }
+void scoreModify(void) {
+    if (0 == modify.size()) {
+        cout << "暂时没有申请" << endl;
+        sleepClean();
+    }
+    for (int i = 0; i < modify.size(); i++) {
+        cleanScreen();
+        printf("第%d个需要成绩申诉的学生\n", i + 1);
+        printf("他的姓名是");
+        cout << modify[i]->name << endl;
+        cout << "原成绩为";
+        cout << modify[i]->score << endl;
+        cout << "请输入新的成绩(enter以拒绝申请)" << endl;
+        cout << endl;
+        string answer = cinLineString();
+        if ("" == answer) {
+            continue;
+        }
+        if (scoreVerify(answer)) {
+            modify[i]->score = answer;
+            cout << "已修改" << endl;
+        } else {
+            cout << "您输入的分数不合适，请重新输入" << endl;
+            sleepClean();
+            i--;
+            continue;
+        }
+    }
+    modify.clear();
+}
+void chooseAct(void) {
+    while (1) {
+        cleanScreen();
+        cout << "1. 密码找回    2. 成绩申诉" << endl;
+        cout << "3. 返回上一级" << endl;
+        string answer = cinLineString();
+        if ("1" == answer) {
+            transact();
+        } else if ("2" == answer) {
+            scoreModify();
+        } else if ("3" == answer) {
+            return;
+        } else {
+            cout << "请输入正确的序号" << endl;
+            sleepClean();
+            continue;
+        }
+    }
+}
 void adminOption(void) {
     while (1) {
         cleanScreen();
@@ -1432,7 +1500,7 @@ void adminOption(void) {
         } else if (answer == "6") {
             teacherOption("Admin");
         } else if (answer == "7") {
-            transact();
+            chooseAct();
         } else if (answer == "8") {
             break;
         } else {
@@ -2003,14 +2071,13 @@ void printOriginChoice(void) {//初始界面
     }
 }
 void originLogin(void) {//初始登入界面
-    allRead();
     while (1) {
         cleanScreen();
         printOriginChoice();
     }
 }
 int main() {
-
+    allRead();
     /*
     string filename = "C:\\Users\\dyyxs\\Desktop\\SMS\\date\\AdminDate.bin";
     ofstream fls(filename, ios::trunc | ios::binary);
